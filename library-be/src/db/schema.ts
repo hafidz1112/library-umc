@@ -1,0 +1,417 @@
+import {
+  integer,
+  pgTable,
+  varchar,
+  pgEnum,
+  text,
+  timestamp,
+  boolean,
+  date,
+  numeric,
+  index,
+} from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+
+// ==========================================
+// 1. ENUMS
+// ==========================================
+export const statusUserEnum = pgEnum("status_user", ["active", "blacklist"]);
+export const collectionTypeEnum = pgEnum("collection_type", [
+  "physical_book",
+  "ebook",
+  "journal",
+  "thesis",
+]);
+export const contentTypeEnum = pgEnum("content_type", ["text", "pdf", "url"]);
+export const itemStatusEnum = pgEnum("item_status", [
+  "available",
+  "loaned",
+  "damaged",
+  "lost",
+]);
+export const loansStatusEnum = pgEnum("loans_status", [
+  "pending",
+  "approved",
+  "returned",
+  "extended",
+]);
+export const reservationsStatusEnum = pgEnum("reservations_status", [
+  "waiting",
+  "fulfilled",
+  "canceled",
+]);
+export const finesStatusEnum = pgEnum("fines_status", ["paid", "unpaid"]);
+export const logsStatusEnum = pgEnum("logs_status", [
+  "create",
+  "update",
+  "delete",
+  "approve",
+  "blacklist",
+]);
+export const logsEntityEnum = pgEnum("logs_entity", [
+  "loan",
+  "item",
+  "fine",
+  "user",
+]);
+
+// ==========================================
+// 2. MASTER DATA
+// ==========================================
+
+export const categories = pgTable("categories", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+});
+
+export const locations = pgTable("locations", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  room: varchar("room", { length: 200 }).notNull(),
+  rack: varchar("rack", { length: 200 }).notNull(),
+  shelf: varchar("shelf", { length: 200 }).notNull(),
+});
+
+export const vendors = pgTable("vendors", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: varchar("name", { length: 255 }),
+  contact: varchar("contact", { length: 255 }),
+});
+
+// ==========================================
+// 3. AUTHENTICATION (BETTER AUTH + CUSTOM)
+// ==========================================
+
+export const user = pgTable(
+  "user",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    emailVerified: boolean("email_verified").notNull(),
+    image: text("image"),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
+
+    // Custom Fields from your ERD
+    status: statusUserEnum("status").default("active"),
+    passwordHash: varchar("password_hash", { length: 255 }), // Keep if you use credential auth alongside oauth
+    deletedAt: timestamp("deleted_at"),
+
+    // Required by Better Auth Admin Plugin
+    role: text("role"),
+    banned: boolean("banned"),
+    banReason: text("ban_reason"),
+    banExpires: timestamp("ban_expires"),
+  },
+  (table) => {
+    return {
+      statusIdx: index("user_status_idx").on(table.status),
+      deletedAtIdx: index("user_deleted_at_idx").on(table.deletedAt),
+    };
+  }
+);
+
+export const session = pgTable("session", {
+  id: text("id").primaryKey(),
+  expiresAt: timestamp("expires_at").notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+
+  // Required by Better Auth Admin Plugin for Impersonation
+  impersonatedBy: text("impersonated_by"),
+});
+
+export const account = pgTable("account", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+});
+
+export const verification = pgTable("verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});
+
+// ==========================================
+// 4. MEMBERS & PROFILE
+// ==========================================
+
+export const members = pgTable(
+  "members",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => user.id),
+    memberType: varchar("member_type", { length: 100 }).notNull(), // 'Student', 'Lecture'
+    nimNidn: varchar("nim_nidn", { length: 255 }).notNull(),
+    faculty: varchar("faculty", { length: 255 }).notNull(),
+    phone: varchar("phone", { length: 100 }),
+    blacklistReason: text("blacklist_reason"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+    deletedAt: timestamp("deleted_at"),
+  },
+  (table) => {
+    return {
+      nimIdx: index("member_nim_idx").on(table.nimNidn),
+      deletedAtIdx: index("member_deleted_at_idx").on(table.deletedAt),
+    };
+  }
+);
+
+// ==========================================
+// 5. COLLECTIONS (BOOKS, ETC)
+// ==========================================
+
+export const collections = pgTable("collections", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  isbn: varchar("isbn", { length: 255 }),
+  title: varchar("title", { length: 255 }).notNull(),
+  author: varchar("author", { length: 255 }).notNull(),
+  publisher: varchar("publisher", { length: 150 }).notNull(),
+  publicationYear: varchar("publication_year", { length: 100 }).notNull(),
+  type: collectionTypeEnum("type"),
+  categoryId: integer("category_id").references(() => categories.id),
+  description: varchar("description", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
+});
+
+export const collectionContents = pgTable("collection_contents", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  collectionId: integer("collection_id").references(() => collections.id),
+  contentType: contentTypeEnum("content_type"),
+  content: text("content"), // Caution: Large text
+  contentUrl: varchar("content_url", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const collectionViews = pgTable(
+  "collection_views",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    collectionId: integer("collection_id")
+      .notNull()
+      .references(() => collections.id),
+    userId: text("user_id").references(() => user.id),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    viewedAt: timestamp("viewed_at").defaultNow(),
+  },
+  (table) => {
+    return {
+      collIdx: index("cv_collection_idx").on(table.collectionId),
+      viewedAtIdx: index("cv_viewed_at_idx").on(table.viewedAt),
+    };
+  }
+);
+
+// ==========================================
+// 6. INVENTORY & TRANSACTIONS
+// ==========================================
+
+export const items = pgTable(
+  "items",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    collectionId: integer("collection_id")
+      .notNull()
+      .references(() => collections.id),
+    barcode: varchar("barcode", { length: 50 }).notNull().unique(),
+    uniqueCode: varchar("unique_code", { length: 30 }).notNull().unique(),
+    status: itemStatusEnum("status").notNull().default("available"),
+    locationId: integer("location_id")
+      .notNull()
+      .references(() => locations.id),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+    deletedAt: timestamp("deleted_at"),
+  },
+  (table) => {
+    return {
+      collIdx: index("item_collection_idx").on(table.collectionId),
+      statusIdx: index("item_status_idx").on(table.status),
+      deletedAtIdx: index("item_deleted_at_idx").on(table.deletedAt),
+    };
+  }
+);
+
+export const loans = pgTable(
+  "loans",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    memberId: integer("member_id")
+      .notNull()
+      .references(() => members.id),
+    itemId: integer("item_id")
+      .notNull()
+      .references(() => items.id),
+    loanDate: date("loan_date").notNull(),
+    dueDate: date("due_date").notNull(),
+    returnDate: date("return_date"),
+    status: loansStatusEnum("status").notNull(),
+    approvedBy: text("approved_by").references(() => user.id),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+    deletedAt: timestamp("deleted_at"),
+  },
+  (table) => {
+    return {
+      statusIdx: index("loan_status_idx").on(table.status),
+      deletedAtIdx: index("loan_deleted_at_idx").on(table.deletedAt),
+    };
+  }
+);
+
+export const reservations = pgTable("reservations", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  memberId: integer("member_id")
+    .notNull()
+    .references(() => members.id),
+  collectionId: integer("collection_id") // References Collection, not Item (book generalized)
+    .notNull()
+    .references(() => collections.id),
+  status: reservationsStatusEnum("status").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
+});
+
+export const fines = pgTable("fines", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  loanId: integer("loan_id")
+    .notNull()
+    .references(() => loans.id),
+  amount: numeric("amount", { precision: 12, scale: 2 }),
+  status: finesStatusEnum("status").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
+});
+
+export const transactions = pgTable("transactions", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  fineId: integer("fine_id")
+    .notNull()
+    .references(() => fines.id),
+  paymentMethod: varchar("payment_method", { length: 100 }),
+  confirmedBy: text("confirmed_by")
+    .notNull()
+    .references(() => user.id),
+  paidAt: date("paid_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const acquisitions = pgTable("acquisitions", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  vendorId: integer("vendor_id")
+    .notNull()
+    .references(() => vendors.id),
+  collectionId: integer("collection_id")
+    .notNull()
+    .references(() => collections.id),
+  quantity: integer("quantity"),
+  acquiredAt: date("acquired_at"),
+  createdAt: date("created_at").defaultNow(),
+});
+
+// ==========================================
+// 7. LOGS & ANALYTICS
+// ==========================================
+
+export const logs = pgTable("logs", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  action: logsStatusEnum("action").notNull(),
+  entity: logsEntityEnum("entity").notNull(),
+  entityId: integer("entity_id"),
+  ipAddress: varchar("ip_address", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const webTraffic = pgTable("web_traffic", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userId: text("user_id").references(() => user.id),
+  pageVisited: varchar("page_visited", { length: 255 }),
+  visitTimestamp: timestamp("visit_timestamp").defaultNow(),
+  userAgent: text("user_agent"),
+});
+
+// ==========================================
+// 8. RELATIONS (DRIZZLE ORM)
+// ==========================================
+
+// Relasi Users -> Roles / Members
+export const userRelations = relations(user, ({ one }) => ({
+  member: one(members, {
+    fields: [user.id],
+    references: [members.userId],
+  }),
+}));
+
+// Relasi Collections -> Category / Items
+export const collectionRelations = relations(collections, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [collections.categoryId],
+    references: [categories.id],
+  }),
+  items: many(items),
+  contents: many(collectionContents),
+}));
+
+export const itemRelations = relations(items, ({ one, many }) => ({
+  collection: one(collections, {
+    fields: [items.collectionId],
+    references: [collections.id],
+  }),
+  location: one(locations, {
+    fields: [items.locationId],
+    references: [locations.id],
+  }),
+  activeLoan: many(loans), // Bisa filter 'pending'/'approved' nanti
+}));
+
+export const loanRelations = relations(loans, ({ one }) => ({
+  member: one(members, {
+    fields: [loans.memberId],
+    references: [members.id],
+  }),
+  item: one(items, {
+    fields: [loans.itemId],
+    references: [items.id],
+  }),
+  authApproved: one(user, {
+    fields: [loans.approvedBy],
+    references: [user.id],
+  }),
+}));
