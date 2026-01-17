@@ -5,8 +5,9 @@ CREATE TYPE "public"."item_status" AS ENUM('available', 'loaned', 'damaged', 'lo
 CREATE TYPE "public"."loans_status" AS ENUM('pending', 'approved', 'returned', 'extended');--> statement-breakpoint
 CREATE TYPE "public"."logs_entity" AS ENUM('loan', 'item', 'fine', 'Users');--> statement-breakpoint
 CREATE TYPE "public"."logs_status" AS ENUM('create', 'update', 'delete', 'approve', 'blacklist');--> statement-breakpoint
+CREATE TYPE "public"."member_type" AS ENUM('student', 'lecturer', 'staff', 'admin');--> statement-breakpoint
+CREATE TYPE "public"."recommendation_status" AS ENUM('pending', 'approved', 'rejected');--> statement-breakpoint
 CREATE TYPE "public"."reservations_status" AS ENUM('waiting', 'fulfilled', 'canceled');--> statement-breakpoint
-CREATE TYPE "public"."status_user" AS ENUM('active', 'blacklist');--> statement-breakpoint
 CREATE TABLE "users" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
@@ -15,7 +16,6 @@ CREATE TABLE "users" (
 	"image" text,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL,
-	"status" "status_user" DEFAULT 'active',
 	"password_hash" varchar(255),
 	"deleted_at" timestamp,
 	"role" text,
@@ -62,7 +62,9 @@ CREATE TABLE "collection_contents" (
 	"content_type" "content_type",
 	"content" text,
 	"content_url" varchar(255),
-	"created_at" timestamp DEFAULT now()
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "collection_views" (
@@ -76,13 +78,13 @@ CREATE TABLE "collection_views" (
 CREATE TABLE "collections" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "collections_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"isbn" varchar(255),
-	"title" varchar(255) NOT NULL,
-	"author" varchar(255) NOT NULL,
-	"publisher" varchar(150) NOT NULL,
-	"publication_year" varchar(100) NOT NULL,
+	"title" varchar(255),
+	"author" varchar(255),
+	"publisher" varchar(150),
+	"publication_year" varchar(100),
 	"type" "collection_type",
 	"category_id" integer,
-	"description" varchar(255),
+	"description" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"deleted_at" timestamp
@@ -101,8 +103,8 @@ CREATE TABLE "fines" (
 CREATE TABLE "items" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "items_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"collection_id" integer NOT NULL,
-	"barcode" varchar(50) NOT NULL,
-	"unique_code" varchar(30) NOT NULL,
+	"barcode" varchar(50),
+	"unique_code" varchar(30),
 	"status" "item_status" DEFAULT 'available' NOT NULL,
 	"location_id" integer NOT NULL,
 	"created_at" timestamp DEFAULT now(),
@@ -146,15 +148,27 @@ CREATE TABLE "logs" (
 CREATE TABLE "members" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "members_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"user_id" text NOT NULL,
-	"member_type" varchar(100) NOT NULL,
-	"nim_nidn" varchar(255) NOT NULL,
-	"faculty" varchar(255) NOT NULL,
+	"member_type" "member_type" NOT NULL,
+	"nim_nidn" varchar(255),
+	"faculty" varchar(255),
 	"phone" varchar(100),
-	"blacklist_reason" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"deleted_at" timestamp,
 	CONSTRAINT "members_user_id_unique" UNIQUE("user_id")
+);
+--> statement-breakpoint
+CREATE TABLE "recommendations" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "recommendations_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"dosen_id" text NOT NULL,
+	"title" varchar(255),
+	"author" varchar(255),
+	"publisher" varchar(255),
+	"reason" text,
+	"status" "recommendation_status" DEFAULT 'pending' NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "reservations" (
@@ -228,13 +242,13 @@ ALTER TABLE "loans" ADD CONSTRAINT "loans_item_id_items_id_fk" FOREIGN KEY ("ite
 ALTER TABLE "loans" ADD CONSTRAINT "loans_approved_by_users_id_fk" FOREIGN KEY ("approved_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "logs" ADD CONSTRAINT "logs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "members" ADD CONSTRAINT "members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "recommendations" ADD CONSTRAINT "recommendations_dosen_id_users_id_fk" FOREIGN KEY ("dosen_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "reservations" ADD CONSTRAINT "reservations_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "reservations" ADD CONSTRAINT "reservations_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_fine_id_fines_id_fk" FOREIGN KEY ("fine_id") REFERENCES "public"."fines"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_confirmed_by_users_id_fk" FOREIGN KEY ("confirmed_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "web_traffic" ADD CONSTRAINT "web_traffic_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "user_status_idx" ON "users" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "user_deleted_at_idx" ON "users" USING btree ("deleted_at");--> statement-breakpoint
 CREATE INDEX "cv_collection_idx" ON "collection_views" USING btree ("collection_id");--> statement-breakpoint
 CREATE INDEX "cv_viewed_at_idx" ON "collection_views" USING btree ("viewed_at");--> statement-breakpoint

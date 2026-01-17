@@ -2,12 +2,24 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { routes } from "./routes";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./lib/auth";
 
 dotenv.config();
 
 const app = express();
-app.use(cors()); // Agar FE bisa panggil tanpa error CORS
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL, // Ganti sesuai URL frontend Anda
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
+
+// Better Auth Handler
+app.all("/api/auth/*path", toNodeHandler(auth));
 
 // Routes
 app.use("/api", routes);

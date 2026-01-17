@@ -56,21 +56,33 @@ async function seed() {
         email: data.email,
         emailVerified: true,
         role: data.role,
-        status: data.status as "active" | "blacklist",
         createdAt: now,
         updatedAt: now,
       });
 
       // 2. Insert into members table if applicable (has nim or nidn)
-      if ("nim" in data || "nidn" in data) {
-        // Determine member type and ID
-        const memberType = data.role === "mahasiswa" ? "Student" : "Lecture";
-        const nimNidn = "nim" in data ? data.nim : (data as any).nidn;
+      let memberType: "student" | "lecturer" | "staff" = "student";
+      let nimNidnValue: string | null = null;
+      let shouldInsertMember = false;
 
+      if (data.role === "mahasiswa") {
+        memberType = "student";
+        if ("nim" in data) nimNidnValue = data.nim;
+        shouldInsertMember = true;
+      } else if (data.role === "dosen") {
+        memberType = "lecturer";
+        if ("nidn" in data) nimNidnValue = data.nidn;
+        shouldInsertMember = true;
+      } else if (data.role === "staff") {
+        memberType = "staff";
+        shouldInsertMember = true;
+      }
+
+      if (shouldInsertMember) {
         await db.insert(members).values({
           userId: userId,
-          memberType: memberType,
-          nimNidn: nimNidn,
+          memberType,
+          nimNidn: nimNidnValue,
           faculty: data.faculty,
           createdAt: now,
           updatedAt: now,

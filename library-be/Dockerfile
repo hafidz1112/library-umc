@@ -21,7 +21,7 @@ RUN if [ "$NODE_ENV" = "production" ]; then \
 COPY . .
 
 # Expose port (sesuaikan dengan port aplikasi, misal 3000)
-EXPOSE 3000
+EXPOSE 4000
 
 # Conditional CMD based on environment
 # Development: gunakan --watch untuk hot reload

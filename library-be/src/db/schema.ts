@@ -15,7 +15,7 @@ import { relations, sql } from "drizzle-orm";
 // ==========================================
 // 1. ENUMS
 // ==========================================
-export const statusUserEnum = pgEnum("status_user", ["active", "blacklist"]);
+// statusUserEnum removed - using Better Auth 'banned' field instead
 export const collectionTypeEnum = pgEnum("collection_type", [
   "physical_book",
   "ebook",
@@ -53,6 +53,19 @@ export const logsEntityEnum = pgEnum("logs_entity", [
   "item",
   "fine",
   "Users",
+]);
+
+export const recommendationStatusEnum = pgEnum("recommendation_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
+export const memberType = pgEnum("member_type", [
+  "student",
+  "lecturer",
+  "staff",
+  "super_admin",
 ]);
 
 // ==========================================
@@ -94,19 +107,17 @@ export const Users = pgTable(
     updatedAt: timestamp("updated_at").notNull(),
 
     // Custom Fields from your ERD
-    status: statusUserEnum("status").default("active"),
     passwordHash: varchar("password_hash", { length: 255 }), // Keep if you use credential auth alongside oauth
     deletedAt: timestamp("deleted_at"),
 
     // Required by Better Auth Admin Plugin
-    role: text("role"),
-    banned: boolean("banned"),
+    role: text("role").default("student"),
+    banned: boolean("banned").default(false),
     banReason: text("ban_reason"),
     banExpires: timestamp("ban_expires"),
   },
   (table) => {
     return {
-      statusIdx: index("user_status_idx").on(table.status),
       deletedAtIdx: index("user_deleted_at_idx").on(table.deletedAt),
     };
   }
@@ -167,11 +178,10 @@ export const members = pgTable(
       .notNull()
       .unique()
       .references(() => Users.id),
-    memberType: varchar("member_type", { length: 100 }).notNull(), // 'Student', 'Lecture'
-    nimNidn: varchar("nim_nidn", { length: 255 }).notNull(),
-    faculty: varchar("faculty", { length: 255 }).notNull(),
+    memberType: memberType("member_type").notNull(), // 'Student', 'Lecture'
+    nimNidn: varchar("nim_nidn", { length: 255 }),
+    faculty: varchar("faculty", { length: 255 }),
     phone: varchar("phone", { length: 100 }),
-    blacklistReason: text("blacklist_reason"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
     deletedAt: timestamp("deleted_at"),
@@ -191,13 +201,13 @@ export const members = pgTable(
 export const collections = pgTable("collections", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   isbn: varchar("isbn", { length: 255 }),
-  title: varchar("title", { length: 255 }).notNull(),
-  author: varchar("author", { length: 255 }).notNull(),
-  publisher: varchar("publisher", { length: 150 }).notNull(),
-  publicationYear: varchar("publication_year", { length: 100 }).notNull(),
+  title: varchar("title", { length: 255 }),
+  author: varchar("author", { length: 255 }),
+  publisher: varchar("publisher", { length: 150 }),
+  publicationYear: varchar("publication_year", { length: 100 }),
   type: collectionTypeEnum("type"),
   categoryId: integer("category_id").references(() => categories.id),
-  description: varchar("description", { length: 255 }),
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
@@ -210,6 +220,8 @@ export const collectionContents = pgTable("collection_contents", {
   content: text("content"), // Caution: Large text
   contentUrl: varchar("content_url", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const collectionViews = pgTable(
@@ -242,8 +254,8 @@ export const items = pgTable(
     collectionId: integer("collection_id")
       .notNull()
       .references(() => collections.id),
-    barcode: varchar("barcode", { length: 50 }).notNull().unique(),
-    uniqueCode: varchar("unique_code", { length: 30 }).notNull().unique(),
+    barcode: varchar("barcode", { length: 50 }).unique(),
+    uniqueCode: varchar("unique_code", { length: 30 }).unique(),
     status: itemStatusEnum("status").notNull().default("available"),
     locationId: integer("location_id")
       .notNull()
@@ -340,6 +352,22 @@ export const acquisitions = pgTable("acquisitions", {
   createdAt: date("created_at").defaultNow(),
 });
 
+// Tabel rekomendasi dosen ke pustakaawan
+export const recommendations = pgTable("recommendations", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  dosenId: text("dosen_id")
+    .notNull()
+    .references(() => Users.id),
+  title: varchar("title", { length: 255 }),
+  author: varchar("author", { length: 255 }),
+  publisher: varchar("publisher", { length: 255 }),
+  reason: text("reason"),
+  status: recommendationStatusEnum("status").default("pending").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
+});
+
 // ==========================================
 // 7. LOGS & ANALYTICS
 // ==========================================
@@ -357,9 +385,7 @@ export const logs = pgTable("logs", {
 });
 
 export const webTraffic = pgTable("web_traffic", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: text("id").primaryKey(),
   ipAddress: varchar("ip_address", { length: 45 }),
   userId: text("user_id").references(() => Users.id),
   pageVisited: varchar("page_visited", { length: 255 }),
@@ -415,3 +441,13 @@ export const loanRelations = relations(loans, ({ one }) => ({
     references: [Users.id],
   }),
 }));
+
+export const recommendationRelations = relations(
+  recommendations,
+  ({ one }) => ({
+    dosen: one(Users, {
+      fields: [recommendations.dosenId],
+      references: [Users.id],
+    }),
+  })
+);

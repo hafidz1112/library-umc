@@ -3,22 +3,17 @@ import { Routes, Route } from "react-router";
 // Pages
 import Home from "../pages/Home";
 import About from "../pages/About";
-import Login from "../pages/Login";
+import Login from "../components/ui/login";
 import Register from "../pages/Register";
-
-// Layouts
-import AuthLayout from "./layouts/AuthLayout";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route index element={<Home />} />
+      <Route path="/" element={<Home />} />
       <Route path="about" element={<About />} />
 
-      <Route element={<AuthLayout />}>
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-      </Route>
+      <Route path="login" element={<Login />} />
+      <Route path="register" element={<Register />} />
 
       {/* 404 Not Found */}
       <Route

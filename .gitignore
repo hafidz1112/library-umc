@@ -27,6 +27,9 @@ Thumbs.db
 # Docker
 .dockerignore
 
+# Agent
+/.agent
+
 # Database
 *.db
 *.sqlite
