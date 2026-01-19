@@ -5,6 +5,7 @@ import Home from "../pages/Home";
 import About from "../pages/About";
 import Login from "../components/ui/login";
 import Register from "../pages/Register";
+import Handle from "@/pages/handlelogout";
 
 const AppRoutes = () => {
   return (
@@ -14,6 +15,7 @@ const AppRoutes = () => {
 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/handle" element={<Handle/>} />
 
       {/* 404 Not Found */}
       <Route
