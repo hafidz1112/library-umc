@@ -1,111 +1,83 @@
 import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router";
+import Navbar from "@/components/ui/navbar";
+import Handle from "@/pages/handlelogout"
+import Background from "@/assets/hero-bg.jpeg"
 
-type User = {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  email: string;
-  emailVerified: boolean;
-  name: string;
-  image?: string | null | undefined;
-  role: string;
-};
+
 
 export default function Home() {
-  const { data: session } = authClient.useSession();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await authClient.signOut();
-    navigate("/login");
-  };
+  
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center justify-center bg-gray-50">
-      <div className="text-center space-y-6">
-        <h1 className="text-4xl font-bold text-gray-900">
-          Welcome to Library System
-        </h1>
-
-        {session ? (
-          (session.user as User).role === "unauthorized" ? (
-            <div className="flex flex-col items-center gap-4 p-8 bg-red-50 rounded-xl shadow-sm border border-red-200 max-w-md">
-              <div className="text-red-500 bg-red-100 p-3 rounded-full">
+    <div className="w-full min-h-screen bg-gray-50">
+      <div>
+        <div className="absolute w-full">
+          <Navbar/>
+        </div>
+        {/* halaman pertama */}
+        <div className="flex w-full h-screen items-center justify-center text-center bg-opacity-50" 
+        style={{
+          backgroundImage: `url(${Background}`, // sesuaikan path gambar
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          
+        }}>
+          
+          
+          
+          <div className="space-y-2">
+            <div className="text-4xl font-bold text-white space-y-2">
+              <h1>Perpustakaan<br/> Universitas Muhammadiyah Cirebon</h1>
+              <p className="text-lg font-normal">Akses koleksi buku, jurnal, dan e-book resmi UMC</p>
+            </div>
+            {/* search */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+          <div className="flex flex-col space-y-4">
+            {/* Input Search & Dropdown */}
+            <div className="flex items-center space-x-2">
+              <div className="relative flex-grow">
+                <input
+                  type="text"
+                  placeholder="Cari Judul, penulis, ISBN, atau kata kunci"
+                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="32"
-                  height="32"
-                  viewBox="0 0 24 24"
+                  className="h-5 w-5 absolute left-3 top-3.5 text-gray-400"
                   fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
                 >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="15" y1="9" x2="9" y2="15" />
-                  <line x1="9" y1="9" x2="15" y2="15" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
-              <div className="text-center">
-                <h2 className="text-xl font-bold text-red-700">
-                  Akses Ditolak
-                </h2>
-                <p className="text-red-600 mt-2">
-                  Email <strong>{session.user.email}</strong> tidak terdaftar di
-                  sistem Kampus. Silakan gunakan email universitas atau hubungi
-                  admin.
-                </p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="mt-4 px-6 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors w-full"
-              >
-                Kembali ke Login
-              </button>
+              <select className="px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500">
+                <option>Penulis</option>
+                <option>Judul</option>
+                <option>ISBN</option>
+                <option>Kata Kunci</option>
+              </select>
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-xl shadow-sm border">
-              <Avatar className="h-20 w-20">
-                <AvatarImage
-                  src={session.user.image || ""}
-                  alt={session.user.name}
-                />
-                <AvatarFallback>{session.user.name?.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="text-center">
-                <p className="text-xl font-semibold">{session.user.name}</p>
-                <p className="text-sm text-gray-500">{session.user.email}</p>
-                <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {(session.user as User).role || "User"}
-                </div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="mt-4 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
-          )
-        ) : (
-          <div className="flex flex-col gap-4">
-            <p className="text-xl text-gray-600">
-              Manage your books and resources efficiently
-            </p>
-            <div className="flex gap-4 justify-center">
-              <a
-                href="/login"
-                className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-lg hover:shadow-xl"
-              >
-                Sign In with Google
-              </a>
-            </div>
+
+            {/* Tombol Telusuri Koleksi */}
+            <button className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-full transition-colors duration-200">
+              Telusuri Koleksi
+            </button>
           </div>
-        )}
+        </div>
+          
+          </div>
+        </div>
       </div>
+      
     </div>
   );
 }
