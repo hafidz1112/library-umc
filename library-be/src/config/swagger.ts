@@ -17,7 +17,7 @@ const swaggerDefinition = {
       description: "Development Server",
     },
     {
-      url: "https://library-be.leapcell.app",
+      url: "https://api-library-be.leapcell.app/api",
       description: "Production Server",
     },
   ],
