@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import LogoUmc from "@/assets/logo_umc.png";
 
 const Navbar = () => {
@@ -6,18 +6,18 @@ const Navbar = () => {
 
   // Tutup menu saat tekan Escape
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') setIsMenuOpen(false);
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMenuOpen(false);
     };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
   const navItems = [
     { name: "Beranda", href: "/" },
     { name: "Katalog", href: "/katalog" },
     { name: "E-Resource", href: "/e-resource" },
-    { name: "Tentang", href: "/tentang" }
+    { name: "Tentang", href: "/tentang" },
   ];
 
   return (
@@ -107,10 +107,10 @@ const Navbar = () => {
       </div>
 
       {/* SIDEBAR MOBILE - ANIMASI SMOOTH */}
-      <div 
+      <div
         className={`fixed top-0 right-0 w-64 h-full bg-white shadow-xl z-50
           transform transition-transform duration-300 ease-in-out
-          ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="p-6 flex flex-col h-full">
           {/* Header */}
@@ -191,7 +191,7 @@ const Navbar = () => {
 
       {/* OVERLAY */}
       {isMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black opacity-70 z-40 transition-opacity duration-300"
           onClick={() => setIsMenuOpen(false)}
         ></div>

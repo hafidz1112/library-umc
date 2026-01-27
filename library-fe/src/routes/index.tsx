@@ -5,7 +5,7 @@ import Home from "../pages/Home";
 import About from "../pages/About";
 import Login from "../pages/LoginPage";
 import Register from "../pages/Register";
-import HandleLogout from "../pages/HandleLogout";
+import HandleLogout from "../pages/Handlelogout";
 import SuperAdminDashboard from "../pages/dashboard/SuperAdminDashboard";
 
 const AppRoutes = () => {
