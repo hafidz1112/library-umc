@@ -3,15 +3,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { authClient } from "@/lib/auth-client";
 
-type User = {
-  createdAt: string;
-  email: string;
-  id: string;
-  name: string;
-  role: string;
-  updatedAt: string;
-};
-
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredRole?: string;
@@ -33,7 +24,7 @@ export default function ProtectedRoute({
       }
 
       // Logged in but wrong role
-      const userRole = (session.user as User).role;
+      const userRole = (session.user as any).role;
       if (requiredRole && userRole !== requiredRole) {
         navigate("/");
         return;
@@ -54,7 +45,7 @@ export default function ProtectedRoute({
   }
 
   // Not authorized
-  const userRole = session ? (session.user as User).role : null;
+  const userRole = session ? (session.user as any).role : null;
   if (!session || (requiredRole && userRole !== requiredRole)) {
     return null;
   }

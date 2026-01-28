@@ -1,13 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import LogoUmc from "@/assets/logo_umc.png";
+import { authClient } from "@/lib/auth-client";
+import { LogOut, User, ChevronDown, LayoutDashboard } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { data: session } = authClient.useSession();
+  const navigate = useNavigate();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Tutup menu saat tekan Escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsMenuOpen(false);
+      if (e.key === "Escape") {
+        setIsMenuOpen(false);
+        setIsDropdownOpen(false);
+      }
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
@@ -19,6 +43,11 @@ const Navbar = () => {
     { name: "E-Resource", href: "/e-resource" },
     { name: "Tentang", href: "/tentang" },
   ];
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    navigate("/login");
+  };
 
   return (
     <>
@@ -50,28 +79,77 @@ const Navbar = () => {
           ))}
         </nav>
 
-        {/* Login Button - Desktop */}
-        <div className="hidden md:block">
-          <a
-            href="/login"
-            className="bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-1 hover:bg-red-800 transition-colors"
-          >
-            <span>SSO Login</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        {/* User Menu / Login Button - Desktop */}
+        <div className="hidden md:block relative" ref={dropdownRef}>
+          {session ? (
+            <div className="relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center space-x-3 bg-white border border-gray-200 rounded-full px-2 py-1 hover:shadow-md transition-shadow"
+              >
+                {/* Avatar */}
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 border border-red-200">
+                  {session.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name || "User"}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-5 h-5" />
+                  )}
+                </div>
+                {/* Name */}
+                <span className="text-sm font-medium text-gray-700 max-w-[120px] truncate">
+                  {session.user?.name || "User"}
+                </span>
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 overflow-hidden">
+                  {(session.user as any).role === "super_admin" && (
+                    <a
+                      href="/dashboard/super-admin"
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      <span>Dashboard</span>
+                    </a>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Keluar</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <a
+              href="/login"
+              className="bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-1 hover:bg-red-800 transition-colors"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0z M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-          </a>
+              <span>SSO Login</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0z M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </a>
+          )}
         </div>
 
         {/* Hamburger Menu - Mobile */}
@@ -162,29 +240,77 @@ const Navbar = () => {
             ))}
           </nav>
 
-          {/* Login Button - Mobile */}
+          {/* User Menu / Login - Mobile */}
           <div className="mt-auto pt-4 border-t border-gray-200">
-            <a
-              href="/login"
-              className="w-full bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center justify-center space-x-2 hover:bg-red-800 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <span>SSO Login</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            {session ? (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3 px-2">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 border border-red-200 flex-shrink-0">
+                    {session.user?.image ? (
+                      <img
+                        src={session.user.image}
+                        alt={session.user.name || "User"}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-6 h-6" />
+                    )}
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-bold text-gray-800 truncate">
+                      {session.user?.name || "User"}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {session.user?.email}
+                    </p>
+                  </div>
+                </div>
+
+                {(session.user as any).role === "super_admin" && (
+                  <a
+                    href="/dashboard/super-admin"
+                    className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <LayoutDashboard className="w-5 h-5" />
+                    <span>Dashboard</span>
+                  </a>
+                )}
+
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-medium flex items-center justify-center space-x-2 hover:bg-red-100 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Keluar</span>
+                </button>
+              </div>
+            ) : (
+              <a
+                href="/login"
+                className="w-full bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center justify-center space-x-2 hover:bg-red-800 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0z M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </a>
+                <span>SSO Login</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0z M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </a>
+            )}
           </div>
         </div>
       </div>
