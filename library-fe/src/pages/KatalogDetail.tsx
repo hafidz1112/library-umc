@@ -1,16 +1,14 @@
 // src/pages/KatalogDetail.tsx
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router';
+import { useParams,Link } from 'react-router';
 import { API_BASE_URL } from '../lib/api-config';
 import Navbar from '@/components/ui/navbar';
 import Footer from '@/components/Footer';
 import { 
   Share2, 
   Bookmark, 
-  QrCode, 
-  BookOpen, 
+  QrCode,  
   Calendar, 
-  Globe, 
   ChevronRight,
   ArrowRight
 } from 'lucide-react';
@@ -33,7 +31,6 @@ interface Collection {
 
 const KatalogDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [collection, setCollection] = useState<Collection | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,6 +138,12 @@ const KatalogDetail = () => {
             </div>
           </div>
         </div>
+
+        {error && (
+            <>
+            <p>Error</p>
+            </>
+        )}
 
         {/* SECTION: BUKU SERUPA (Sesuai Gambar 4) */}
         <div className="mb-20">

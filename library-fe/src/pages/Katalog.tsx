@@ -1,9 +1,8 @@
-import React, { useState } from "react";
 import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/Footer";
 import BookList from "@/components/BookList"; // Pastikan path import benar
 import Background from "@/assets/bg-new.jpeg";
-import { Search, ChevronRight, Calendar, RotateCcw } from "lucide-react";
+import { Search, RotateCcw } from "lucide-react";
 
 const Katalog = () => {
   return (
