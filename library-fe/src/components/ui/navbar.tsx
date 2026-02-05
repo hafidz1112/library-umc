@@ -284,7 +284,7 @@ const Navbar = () => {
                   }}
                   className="w-full bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-medium flex items-center justify-center space-x-2 hover:bg-red-100 transition-colors"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-4 h-4"/>
                   <span>Keluar</span>
                 </button>
               </div>
