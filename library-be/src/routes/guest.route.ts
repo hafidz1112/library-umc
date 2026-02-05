@@ -1,16 +1,9 @@
 import { Router } from "express";
-import {
-  searchCampusUsers,
-  getAllCampusUsers,
-  getUserFromCampus,
-  createGuestLog,
-  getGuestLogs,
-  getGuestStats,
-  deleteGuestLog,
-} from "../controller/GuestController";
+import { GuestController } from "../controller/GuestController";
 import { isAuthenticated, requireRole } from "../middlewares/auth.middleware";
 
 const router = Router();
+const guestController = new GuestController();
 
 /**
  * @swagger
@@ -74,12 +67,12 @@ const router = Router();
  *         description: At least one search parameter is required
  *       401:
  *         description: Unauthorized
- */
+ * */
 router.get(
   "/guests/search",
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
-  searchCampusUsers,
+  guestController.searchCampusUsers,
 );
 
 /**
@@ -125,7 +118,7 @@ router.get(
   "/guests/campus",
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
-  getAllCampusUsers,
+  guestController.getAllCampusUsers,
 );
 
 /**
@@ -157,7 +150,7 @@ router.get(
   "/guests/campus/:email",
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
-  getUserFromCampus,
+  guestController.getUserFromCampus,
 );
 
 /**
@@ -179,7 +172,7 @@ router.get(
   "/guests/stats",
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
-  getGuestStats,
+  guestController.getGuestStats,
 );
 
 /**
@@ -218,7 +211,7 @@ router.post(
   "/guests",
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
-  createGuestLog,
+  guestController.createGuestLog,
 );
 
 /**
@@ -253,7 +246,7 @@ router.get(
   "/guests",
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
-  getGuestLogs,
+  guestController.getGuestLogs,
 );
 
 /**
@@ -284,7 +277,7 @@ router.delete(
   "/guests/:id",
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
-  deleteGuestLog,
+  guestController.deleteGuestLog,
 );
 
 export const guestRoutes = router;

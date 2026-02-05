@@ -21,9 +21,9 @@ export const isAuthenticated = async (
       return;
     }
 
-    // Simpan session user ke response locals agar bisa diakses di controller jika perlu
-    res.locals.user = session.user;
-    res.locals.session = session.session;
+    // Simpan session user ke response locals dan request object
+    req.user = session.user;
+    req.session = session.session;
 
     next();
   } catch (error) {

@@ -13,11 +13,30 @@ import { Role } from "./auth-types";
 export async function getSession(req: Request) {
   // Convert Node/Express headers to Web Standard Headers
   const headers = new Headers();
+  let bearerToken = "";
+
   for (const [key, value] of Object.entries(req.headers)) {
     if (Array.isArray(value)) {
       value.forEach((v) => headers.append(key, v));
     } else if (typeof value === "string") {
       headers.append(key, value);
+      if (
+        key.toLowerCase() === "authorization" &&
+        value.startsWith("Bearer ")
+      ) {
+        bearerToken = value.split(" ")[1];
+      }
+    }
+  }
+
+  if (bearerToken) {
+    const existingCookie = headers.get("cookie");
+    const sessionCookie = `better-auth.session_token=${bearerToken}`;
+
+    if (existingCookie) {
+      headers.set("cookie", `${existingCookie}; ${sessionCookie}`);
+    } else {
+      headers.set("cookie", sessionCookie);
     }
   }
 
@@ -47,7 +66,7 @@ export async function getCurrentUser(req: Request) {
 
 export function hasRole(
   userRole: string | null | undefined,
-  requiredRole: Role
+  requiredRole: Role,
 ) {
   return userRole === requiredRole;
 }
@@ -76,7 +95,7 @@ export function canManageUsers(userRole: string | null | undefined) {
 
 export function requireRole(
   userRole: string | null | undefined,
-  allowedRoles: Role[]
+  allowedRoles: Role[],
 ) {
   if (!userRole || !hasAnyRole(userRole, allowedRoles)) {
     throw new Error("FORBIDDEN_ACCESS");

@@ -7,144 +7,153 @@ import {
 
 const collectionService = new CollectionService();
 
-/**
- * Get All Collections
- */
-export const getAllCollections = async (req: Request, res: Response) => {
-  try {
-    const result = await collectionService.getAllCollections();
+export class CollectionController {
+  /**
+   * Get All Collections
+   */
+  async getAllCollections(req: Request, res: Response) {
+    try {
+      const result = await collectionService.getAllCollections();
 
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
 
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error("[CollectionController] Error getting collections:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
-  }
-};
-
-/**
- * Get Collection By ID
- */
-export const getCollectionById = async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id as string;
-
-    const result = await collectionService.getCollectionById(id);
-
-    if (!result.success) {
-      return res.status(404).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error("[CollectionController] Error getting collection:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
-  }
-};
-
-/**
- * Create Collection (with File Upload)
- */
-export const createCollection = async (req: Request, res: Response) => {
-  try {
-    // 1. Validation (req.body)
-    const validation = createCollectionSchema.safeParse(req.body);
-
-    if (!validation.success) {
-      return res.status(400).json({
+      res.status(200).json(result);
+    } catch (err) {
+      console.error("[CollectionController] Error getting collections:", err);
+      res.status(500).json({
         success: false,
-        message: "Validation Error",
-        data: validation.error.flatten(),
+        message: "Internal Server Error",
+        data: null,
       });
     }
-
-    // 2. Process in Service
-    const file = req.file;
-    const result = await collectionService.createCollection(
-      validation.data,
-      file,
-    );
-
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    // 201 Created
-    return res.status(201).json(result);
-  } catch (err) {
-    console.error("[CollectionController] Error creating collection:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
   }
-};
 
-export const updateCollection = async (req: Request, res: Response) => {
-  try {
-    const validation = updateCollectionSchema.safeParse(req.body);
+  /**
+   * Get Collection By ID
+   */
+  async getCollectionById(req: Request, res: Response) {
+    try {
+      const id = req.params.id as string;
 
-    if (!validation.success) {
-      return res.status(400).json({
+      const result = await collectionService.getCollectionById(id);
+
+      if (!result.success) {
+        res.status(404).json(result);
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (err) {
+      console.error("[CollectionController] Error getting collection:", err);
+      res.status(500).json({
         success: false,
-        message: "Validation Error",
-        data: validation.error.flatten(),
+        message: "Internal Server Error",
+        data: null,
       });
     }
-
-    const id = req.params.id as string;
-    const file = req.file; // Support file upload for cover image
-
-    const result = await collectionService.updateCollection(
-      id,
-      validation.data,
-      file,
-    );
-
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error("[Collection Controller] Error Updating Collection ", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
   }
-};
 
-export const deleteCollection = async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id as string;
+  /**
+   * Create Collection (with File Upload)
+   */
+  async createCollection(req: Request, res: Response) {
+    try {
+      // 1. Validation (req.body)
+      const validation = createCollectionSchema.safeParse(req.body);
 
-    const result = await collectionService.deleteCollection(id);
+      if (!validation.success) {
+        res.status(400).json({
+          success: false,
+          message: "Validation Error",
+          data: validation.error.flatten(),
+        });
+        return;
+      }
 
-    if (!result.success) {
-      return res.status(400).json(result);
+      // 2. Process in Service
+      const file = req.file;
+      const result = await collectionService.createCollection(
+        validation.data,
+        file,
+      );
+
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
+
+      // 201 Created
+      res.status(201).json(result);
+    } catch (err) {
+      console.error("[CollectionController] Error creating collection:", err);
+      res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        data: null,
+      });
     }
-
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error("[CollectionController] Error deleting collection:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
   }
-};
+
+  async updateCollection(req: Request, res: Response) {
+    try {
+      const validation = updateCollectionSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        res.status(400).json({
+          success: false,
+          message: "Validation Error",
+          data: validation.error.flatten(),
+        });
+        return;
+      }
+
+      const id = req.params.id as string;
+      const file = req.file; // Support file upload for cover image
+
+      const result = await collectionService.updateCollection(
+        id,
+        validation.data,
+        file,
+      );
+
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (err) {
+      console.error("[Collection Controller] Error Updating Collection ", err);
+      res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        data: null,
+      });
+    }
+  }
+
+  async deleteCollection(req: Request, res: Response) {
+    try {
+      const id = req.params.id as string;
+
+      const result = await collectionService.deleteCollection(id);
+
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (err) {
+      console.error("[CollectionController] Error deleting collection:", err);
+      res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        data: null,
+      });
+    }
+  }
+}

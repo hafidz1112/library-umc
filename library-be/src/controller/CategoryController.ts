@@ -7,193 +7,159 @@ import {
 
 const categoryService = new CategoryService();
 
-/**
- * GET /categories - Get All Categories
- */
-export const getAllCategories = async (req: Request, res: Response) => {
-  try {
-    const result = await categoryService.getAllCategories();
-
-    if (!result.success) {
-      return res.status(500).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("[CategoryController] Error getting categories:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
-  }
-};
-
-/**
- * GET /categories/:id - Get Single Category
- */
-export const getCategoryById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    // Validate ID
-    const categoryId = parseInt(id as string);
-    if (isNaN(categoryId)) {
-      return res.status(400).json({
+export class CategoryController {
+  /**
+   * Get All Categories
+   */
+  async getAllCategories(req: Request, res: Response) {
+    try {
+      const result = await categoryService.getAllCategories();
+      res.status(200).json(result);
+    } catch (err: any) {
+      console.error("[CategoryController] Error getting categories:", err);
+      res.status(500).json({
         success: false,
-        message: "Invalid category ID",
-        data: null,
+        message: err.message || "Internal Server Error",
       });
     }
-
-    const result = await categoryService.getCategoryById(categoryId);
-
-    if (!result.success) {
-      return res.status(404).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("[CategoryController] Error getting category:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
   }
-};
 
-/**
- * POST /categories - Create Category (Super Admin Only)
- */
-export const createCategory = async (req: Request, res: Response) => {
-  try {
-    // Validation
-    const validation = createCategorySchema.safeParse(req.body);
+  /**
+   * Get Category By ID
+   */
+  async getCategoryById(req: Request, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+      const categoryId = parseInt(id);
 
-    if (!validation.success) {
-      return res.status(400).json({
+      if (isNaN(categoryId)) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid Category ID",
+        });
+        return;
+      }
+
+      const result = await categoryService.getCategoryById(categoryId);
+      if (!result.success) {
+        res.status(404).json(result);
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (err: any) {
+      console.error("[CategoryController] Error getting category by ID:", err);
+      res.status(500).json({
         success: false,
-        message: "Validation Error",
-        data: validation.error.flatten(),
+        message: err.message || "Internal Server Error",
       });
     }
-
-    const result = await categoryService.createCategory(validation.data as any);
-
-    if (!result.success) {
-      // Check for duplicate error
-      if (result.message.includes("already exists")) {
-        return res.status(409).json(result); // 409 Conflict
-      }
-      return res.status(400).json(result);
-    }
-
-    return res.status(201).json(result);
-  } catch (err) {
-    console.error("[CategoryController] Error creating category:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
   }
-};
 
-/**
- * PUT /categories/:id - Update Category (Super Admin Only)
- */
-export const updateCategory = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
+  /**
+   * Create New Category (Admin Only)
+   */
+  async createCategory(req: Request, res: Response) {
+    try {
+      // Role Validation handled in middleware
+      const validation = createCategorySchema.safeParse(req.body);
 
-    // Validate ID
-    const categoryId = parseInt(id as string);
-    if (isNaN(categoryId)) {
-      return res.status(400).json({
+      if (!validation.success) {
+        res.status(400).json({
+          success: false,
+          message: "Validation Error",
+          data: validation.error.flatten(),
+        });
+        return;
+      }
+
+      const result = await categoryService.createCategory(
+        validation.data as any,
+      );
+      res.status(201).json(result);
+    } catch (err: any) {
+      console.error("[CategoryController] Error creating category:", err);
+      res.status(500).json({
         success: false,
-        message: "Invalid category ID",
-        data: null,
+        message: err.message || "Internal Server Error",
       });
     }
+  }
 
-    // Validation
-    const validation = updateCategorySchema.safeParse(req.body);
+  /**
+   * Update Category (Admin Only)
+   */
+  async updateCategory(req: Request, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+      const categoryId = parseInt(id);
 
-    if (!validation.success) {
-      return res.status(400).json({
+      if (isNaN(categoryId)) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid Category ID",
+        });
+        return;
+      }
+
+      const validation = updateCategorySchema.safeParse(req.body);
+      if (!validation.success) {
+        res.status(400).json({
+          success: false,
+          message: "Validation Error",
+          data: validation.error.flatten(),
+        });
+        return;
+      }
+
+      const result = await categoryService.updateCategory(
+        categoryId,
+        validation.data as any,
+      );
+      if (!result.success) {
+        res.status(404).json(result);
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (err: any) {
+      console.error("[CategoryController] Error updating category:", err);
+      res.status(500).json({
         success: false,
-        message: "Validation Error",
-        data: validation.error.flatten(),
+        message: err.message || "Internal Server Error",
       });
     }
-
-    const result = await categoryService.updateCategory(
-      categoryId,
-      validation.data as any,
-    );
-
-    if (!result.success) {
-      // Check for not found error
-      if (result.message.includes("not found")) {
-        return res.status(404).json(result);
-      }
-      // Check for duplicate error
-      if (result.message.includes("already exists")) {
-        return res.status(409).json(result);
-      }
-      return res.status(400).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error("[CategoryController] Error updating category:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
   }
-};
 
-/**
- * DELETE /categories/:id - Delete Category (Super Admin Only)
- */
-export const deleteCategory = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
+  /**
+   * Delete Category (Admin Only)
+   */
+  async deleteCategory(req: Request, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+      const categoryId = parseInt(id);
 
-    // Validate ID
-    const categoryId = parseInt(id as string);
-    if (isNaN(categoryId)) {
-      return res.status(400).json({
+      if (isNaN(categoryId)) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid Category ID",
+        });
+        return;
+      }
+
+      const result = await categoryService.deleteCategory(categoryId);
+      if (!result.success) {
+        res.status(404).json(result);
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (err: any) {
+      console.error("[CategoryController] Error deleting category:", err);
+      res.status(500).json({
         success: false,
-        message: "Invalid category ID",
-        data: null,
+        message: err.message || "Internal Server Error",
       });
     }
-
-    const result = await categoryService.deleteCategory(categoryId);
-
-    if (!result.success) {
-      // Check for not found error
-      if (result.message.includes("not found")) {
-        return res.status(404).json(result);
-      }
-      // Check for usage error
-      if (result.message.includes("being used")) {
-        return res.status(409).json(result); // 409 Conflict
-      }
-      return res.status(400).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error("[CategoryController] Error deleting category:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      data: null,
-    });
   }
-};
+}

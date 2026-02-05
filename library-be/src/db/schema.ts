@@ -35,6 +35,7 @@ export const loansStatusEnum = pgEnum("loans_status", [
   "approved",
   "returned",
   "extended",
+  "rejected",
 ]);
 export const reservationsStatusEnum = pgEnum("reservations_status", [
   "waiting",
@@ -291,6 +292,10 @@ export const loans = pgTable(
     returnDate: date("return_date"),
     status: loansStatusEnum("status").notNull(),
     approvedBy: text("approved_by").references(() => Users.id),
+    verificationToken: varchar("verification_token", {
+      length: 100,
+    }), // tOken unik QR
+    verificationExpiresAt: timestamp("verification_expires_at"), // Waktu Kadaluarsa QR
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
     deletedAt: timestamp("deleted_at"),
@@ -302,6 +307,9 @@ export const loans = pgTable(
       memberIdx: index("loan_member_idx").on(table.memberId),
       itemIdx: index("loan_item_idx").on(table.itemId),
       activeLoanIdx: index("loan_active_idx").on(table.itemId, table.status),
+      tokenIdx: index("loan_verification_token_idx").on(
+        table.verificationToken,
+      ),
     };
   },
 );
@@ -419,10 +427,15 @@ export const guestLogs = pgTable("guest_logs", {
 
 // Relasi Users -> Roles / Members
 export const userRelations = relations(Users, ({ one }) => ({
-  member: one(members, {
-    fields: [Users.id],
-    references: [members.userId],
+  member: one(members),
+}));
+
+export const memberRelations = relations(members, ({ one, many }) => ({
+  user: one(Users, {
+    fields: [members.userId],
+    references: [Users.id],
   }),
+  loans: many(loans),
 }));
 
 // Relasi Collections -> Category / Items
