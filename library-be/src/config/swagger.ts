@@ -569,6 +569,75 @@ const swaggerDefinition = {
         },
       },
     },
+    "/items": {
+      get: {
+        summary: "Get All Items",
+        description: "Retrieve a list of all items (physical copies).",
+        tags: ["Items"],
+        security: [],
+        responses: {
+          200: {
+            description: "List of items",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ApiResponse",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/items/{id}": {
+      get: {
+        summary: "Get Item By ID",
+        description: "Retrieve a specific item by its ID.",
+        tags: ["Items"],
+        security: [],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            description: "Item ID",
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Item details",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ApiResponse",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/loans": {
+      get: {
+        summary: "Get All Loans",
+        description: "Retrieve a list of all loans.",
+        tags: ["Loans"],
+        security: [],
+        responses: {
+          200: {
+            description: "List of loans",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ApiResponse",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
 };
 

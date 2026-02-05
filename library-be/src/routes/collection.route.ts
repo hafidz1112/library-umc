@@ -1,16 +1,11 @@
 import { Router } from "express";
 import { isAuthenticated, requireRole } from "../middlewares/auth.middleware";
 import { upload } from "../utils/upload";
-import {
-  createCollection,
-  getAllCollections,
-  getCollectionById,
-  updateCollection,
-  deleteCollection,
-} from "../controller/CollectionController";
+import { CollectionController } from "../controller/CollectionController";
 import { publicApiLimiter } from "../middlewares/rateLimiter";
 
 const router = Router();
+const collectionController = new CollectionController();
 
 /**
  * @swagger
@@ -62,7 +57,11 @@ const router = Router();
  *       500:
  *         description: Internal server error
  */
-router.get("/collections", publicApiLimiter, getAllCollections);
+router.get(
+  "/collections",
+  publicApiLimiter,
+  collectionController.getAllCollections,
+);
 
 /**
  * @swagger
@@ -86,7 +85,11 @@ router.get("/collections", publicApiLimiter, getAllCollections);
  *       500:
  *         description: Internal server error
  */
-router.get("/collections/:id", publicApiLimiter, getCollectionById);
+router.get(
+  "/collections/:id",
+  publicApiLimiter,
+  collectionController.getCollectionById,
+);
 
 /**
  * @swagger
@@ -163,7 +166,7 @@ router.post(
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
   upload.single("cover"),
-  createCollection,
+  collectionController.createCollection,
 );
 
 /**
@@ -226,7 +229,7 @@ router.patch(
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
   upload.single("cover"),
-  updateCollection,
+  collectionController.updateCollection,
 );
 
 /**
@@ -259,7 +262,7 @@ router.delete(
   "/collections/:id",
   isAuthenticated,
   requireRole(["super_admin", "staff"]),
-  deleteCollection,
+  collectionController.deleteCollection,
 );
 
 export const collectionRoutes = router;

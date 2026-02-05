@@ -1,15 +1,10 @@
 import { Router } from "express";
-import {
-  getAllCategories,
-  getCategoryById,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from "../controller/CategoryController";
+import { CategoryController } from "../controller/CategoryController";
 import { isAuthenticated, requireRole } from "../middlewares/auth.middleware";
 import { publicApiLimiter } from "../middlewares/rateLimiter";
 
 const router = Router();
+const categoryController = new CategoryController();
 
 /**
  * @swagger
@@ -52,7 +47,11 @@ const router = Router();
  *       500:
  *         description: Internal server error
  */
-router.get("/categories", publicApiLimiter, getAllCategories);
+router.get(
+  "/categories",
+  publicApiLimiter,
+  categoryController.getAllCategories,
+);
 
 /**
  * @swagger
@@ -76,7 +75,11 @@ router.get("/categories", publicApiLimiter, getAllCategories);
  *       404:
  *         description: Category not found
  */
-router.get("/categories/:id", publicApiLimiter, getCategoryById);
+router.get(
+  "/categories/:id",
+  publicApiLimiter,
+  categoryController.getCategoryById,
+);
 
 /**
  * @swagger
@@ -132,7 +135,7 @@ router.post(
   "/categories",
   isAuthenticated,
   requireRole(["super_admin"]),
-  createCategory,
+  categoryController.createCategory,
 );
 
 /**
@@ -196,7 +199,7 @@ router.patch(
   "/categories/:id",
   isAuthenticated,
   requireRole(["super_admin"]),
-  updateCategory,
+  categoryController.updateCategory,
 );
 
 /**
@@ -233,7 +236,7 @@ router.delete(
   "/categories/:id",
   isAuthenticated,
   requireRole(["super_admin"]),
-  deleteCategory,
+  categoryController.deleteCategory,
 );
 
 export const categoryRoutes = router;

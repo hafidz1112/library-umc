@@ -8,9 +8,11 @@ import { AuthService } from "../service/auth.service";
 const authService = new AuthService();
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:4000",
   trustedOrigins: [
     process.env.FRONTEND_URL ?? "http://localhost:5173",
     "http://localhost:4173",
+    "https://library-fe-one.vercel.app",
   ], // Whitelist URL frontend
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -40,13 +42,10 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
-  cookies: {
-    prefix: "ba_",
-  },
   advanced: {
     defaultCookieAttributes: {
       sameSite: "none",
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
     },
   },
   plugins: [
