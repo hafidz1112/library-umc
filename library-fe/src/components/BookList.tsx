@@ -1,6 +1,6 @@
-// frontend/src/components/BookList.tsx
+// src/components/BookList.tsx
 import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router'; // Tambahkan ini
+import { useNavigate } from 'react-router';
 import { API_BASE_URL } from '../lib/api-config';
 
 interface Collection {
@@ -19,11 +19,23 @@ interface Collection {
   updated_at: string;
 }
 
-const BookList = () => {
-  const navigate = useNavigate(); // Tambahkan ini
+interface BookListProps {
+  searchQuery?: string;
+  searchType?: string;
+  availabilityFilter?: string[];
+  yearRange?: { start: string; end: string };
+}
+
+const BookList = ({
+  searchQuery = "",
+  searchType = "all",
+  availabilityFilter = [],
+  yearRange = { start: "", end: "" }
+}: BookListProps) => {
+  const navigate = useNavigate();
   
   const [collections, setCollections] = useState<Collection[]>([]);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(0); // 0 = Buku Fisik, 1 = E-Book
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +49,6 @@ const BookList = () => {
         }
 
         const responseJson = await response.json();
-        console.log('API Response:', responseJson);
 
         if (responseJson.success && Array.isArray(responseJson.data)) {
           setCollections(responseJson.data);
@@ -56,12 +67,54 @@ const BookList = () => {
   }, []);
 
   // Filter berdasarkan tab
-  const currentCollections = collections.filter(collection => {
+  const filteredByTab = collections.filter(collection => {
     if (activeTab === 0) {
       return collection.type === 'physical_book';
     } else {
       return collection.type === 'ebook';
     }
+  });
+
+  // Filter berdasarkan search query
+  const filteredBySearch = filteredByTab.filter(collection => {
+    if (!searchQuery.trim()) return true;
+
+    const query = searchQuery.toLowerCase();
+
+    switch (searchType) {
+      case 'title':
+        return collection.title.toLowerCase().includes(query);
+      case 'author':
+        return collection.author.toLowerCase().includes(query);
+      case 'isbn':
+        return collection.isbn?.toLowerCase().includes(query);
+      case 'all':
+      default:
+        return (
+          collection.title.toLowerCase().includes(query) ||
+          collection.author.toLowerCase().includes(query) ||
+          collection.isbn?.toLowerCase().includes(query) ||
+          collection.publisher.toLowerCase().includes(query)
+        );
+    }
+  });
+
+  // Filter berdasarkan ketersediaan
+  const filteredByAvailability = availabilityFilter.length > 0
+    ? filteredBySearch.filter(collection => 
+        availabilityFilter.includes(collection.status)
+      )
+    : filteredBySearch;
+
+  // Filter berdasarkan tahun terbit
+  const filteredByYear = filteredByAvailability.filter(collection => {
+    if (!yearRange.start && !yearRange.end) return true;
+
+    const year = collection.publicationYear;
+    const start = yearRange.start ? parseInt(yearRange.start) : 0;
+    const end = yearRange.end ? parseInt(yearRange.end) : 9999;
+
+    return year >= start && year <= end;
   });
 
   // Helper: Status label
@@ -81,14 +134,14 @@ const BookList = () => {
     return type === 'physical_book' ? 'bg-purple-500' : 'bg-blue-500';
   };
 
-  // ✅ Tambahkan fungsi untuk navigasi ke detail
+  // Navigasi ke detail
   const handleBookClick = (collectionId: string) => {
     navigate(`/katalog/${collectionId}`);
   };
 
   if (loading) {
     return (
-      <div className="w-full max-w-4xl mx-auto p-6 bg-gray-50 rounded-xl">
+      <div className="w-full bg-white rounded-xl shadow p-6">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto mb-4"></div>
           <p className="text-gray-600">Memuat data koleksi...</p>
@@ -99,8 +152,8 @@ const BookList = () => {
 
   if (error) {
     return (
-      <div className="w-full max-w-4xl mx-auto p-6 bg-gray-50 rounded-xl">
-        <div className="text-center py-12 bg-red-50 rounded-lg">
+      <div className="w-full bg-white rounded-xl shadow p-6">
+        <div className="text-center py-12">
           <div className="text-5xl mb-4">⚠️</div>
           <h3 className="text-lg font-semibold text-red-600 mb-2">Error</h3>
           <p className="text-gray-700 mb-4">{error}</p>
@@ -116,15 +169,36 @@ const BookList = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 bg-gray-50 rounded-xl shadow-lg">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Koleksi Perpustakaan</h1>
-        <p className="text-sm text-gray-600 mt-1">Klik pada buku untuk melihat detail</p>
+    <div className="w-[800px] bg-white rounded-xl shadow p-6">
+      {/* Header dengan hasil pencarian */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Koleksi Perpustakaan</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            {filteredByYear.length} hasil ditemukan
+          </p>
+        </div>
+        
+        {/* Tab Navigation */}
+        <div className="hidden md:flex border-b border-gray-200">
+          {["Buku Fisik", "E-Book"].map((tab, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveTab(index)}
+              className={`px-6 py-3 text-sm font-medium ${
+                activeTab === index
+                  ? "text-red-700 border-b-2 border-red-700"
+                  : "text-gray-700 hover:text-red-700"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex border-b border-gray-200 mb-6">
+      {/* Mobile Tab Navigation */}
+      <div className="md:hidden flex border-b border-gray-200 mb-6">
         {["Buku Fisik", "E-Book"].map((tab, index) => (
           <button
             key={index}
@@ -142,17 +216,20 @@ const BookList = () => {
 
       {/* Book List */}
       <div className="space-y-4">
-        {currentCollections.length === 0 ? (
+        {filteredByYear.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            <div className="text-4xl mb-4">📚</div>
-            <p>Tidak ada koleksi {activeTab === 0 ? 'buku fisik' : 'e-book'} yang tersedia</p>
+            <div className="text-4xl mb-4">🔍</div>
+            <p className="text-lg font-semibold mb-2">Tidak ada hasil ditemukan</p>
+            <p className="text-sm">
+              Coba ubah kata kunci pencarian atau filter lainnya
+            </p>
           </div>
         ) : (
-          currentCollections.map((collection) => (
+          filteredByYear.map((collection) => (
             <div
               key={collection.id}
-              className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer border border-gray-100 hover:border-red-300 hover:-translate-y-1"
-              onClick={() => handleBookClick(collection.id)} // ✅ Ganti dengan fungsi navigasi
+              onClick={() => handleBookClick(collection.id)}
+              className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-white hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-200 hover:border-red-200"
             >
               {/* Cover Image */}
               <div className="w-16 h-24 rounded-lg mr-4 flex-shrink-0 overflow-hidden">
@@ -191,12 +268,17 @@ const BookList = () => {
                   {collection.author}
                 </p>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">
-                    {collection.type}
+                  <span className="px-2 py-1 text-xs bg-gray-200 text-gray-800 rounded">
+                    {collection.type === 'physical_book' ? 'Buku Fisik' : 'E-Book'}
                   </span>
                   {collection.publicationYear && (
-                    <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">
+                    <span className="px-2 py-1 text-xs bg-gray-200 text-gray-800 rounded">
                       {collection.publicationYear}
+                    </span>
+                  )}
+                  {collection.isbn && (
+                    <span className="px-2 py-1 text-xs bg-gray-200 text-gray-800 rounded">
+                      ISBN: {collection.isbn}
                     </span>
                   )}
                 </div>
