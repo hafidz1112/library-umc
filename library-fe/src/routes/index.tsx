@@ -14,6 +14,7 @@ import AddCategoryPage from "../pages/dashboard/AddCategoryPage";
 import AddGuestPage from "../pages/dashboard/AddGuestPage";
 import EditCollectionPage from "../pages/dashboard/EditCollectionPage";
 import EditCategoryPage from "../pages/dashboard/EditCategoryPage";
+import Profile from "../pages/Profile";
 
 // Components
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -25,6 +26,7 @@ const AppRoutes = () => {
       <Route path="/about" element={<About />} />
       <Route path="/katalog" element={<Katalog />} />
       <Route path="/katalog/:id" element={<DetailKatalog />} />
+      <Route path="/profile" element={<Profile />} />
 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

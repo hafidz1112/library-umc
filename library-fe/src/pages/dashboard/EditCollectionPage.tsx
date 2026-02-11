@@ -33,7 +33,7 @@ export default function EditCollectionPage() {
     const fetchData = async () => {
       try {
         // Fetch categories
-        const categoriesRes = await fetch(`${API_BASE_URL}/api/categories`);
+        const categoriesRes = await fetch(`${API_BASE_URL}api/categories`);
         const categoriesData = await categoriesRes.json();
         if (categoriesData.success) {
           setCategories(categoriesData.data || []);
@@ -41,7 +41,7 @@ export default function EditCollectionPage() {
 
         // Fetch collection
         const collectionRes = await fetch(
-          `${API_BASE_URL}/api/collections/${id}`,
+          `${API_BASE_URL}api/collections/${id}`,
           {
             credentials: "include",
           },
@@ -113,7 +113,7 @@ export default function EditCollectionPage() {
         submitData.append("cover", newImageFile);
       }
 
-      const res = await fetch(`${API_BASE_URL}/api/collections/${id}`, {
+      const res = await fetch(`${API_BASE_URL}api/collections/${id}`, {
         method: "PATCH",
         credentials: "include",
         body: submitData,
