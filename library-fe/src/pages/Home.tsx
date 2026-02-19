@@ -1,11 +1,37 @@
+// src/pages/Home.tsx
+import { useState } from "react";
+import { useNavigate } from 'react-router';
 import Navbar from "@/components/ui/navbar";
-// import Handle from "@/pages/handlelogout"
 import Background from "@/assets/bg1.jpeg";
 import DialogUnauthorized from "@/components/DialogUnauthorized";
 import Footer from "@/components/Footer";
 import BookList from "@/components/BookList";
 
 export default function Home() {
+  const navigate = useNavigate();
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchType, setSearchType] = useState("all"); // all, title, author, isbn
+
+  // Handle search and redirect to Katalog page
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      alert("Silakan masukkan kata kunci pencarian");
+      return;
+    }
+
+    // Navigate to Katalog page with search parameters
+    navigate(`/katalog?search=${encodeURIComponent(searchQuery)}&type=${searchType}`);
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-gray-50">
       <div>
@@ -13,11 +39,12 @@ export default function Home() {
           <Navbar />
           <DialogUnauthorized />
         </div>
-        {/* halaman pertama */}
+        
+        {/* Hero Section with Search */}
         <div
           className="flex w-full h-screen items-center justify-center text-center"
           style={{
-            backgroundImage: `url(${Background}`, // sesuaikan path gambar
+            backgroundImage: `url(${Background})`, // Fixed: missing closing parenthesis
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
@@ -33,7 +60,8 @@ export default function Home() {
                 Akses koleksi buku, jurnal, dan e-book resmi UMC
               </p>
             </div>
-            {/* search */}
+            
+            {/* Search Bar */}
             <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
               <div className="flex flex-col space-y-4">
                 {/* Input Search & Dropdown */}
@@ -41,6 +69,9 @@ export default function Home() {
                   <div className="relative flex-grow">
                     <input
                       type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={handleKeyPress}
                       placeholder="Cari Judul, penulis, ISBN, atau kata kunci"
                       className="w-full px-4 py-3 pl-10 border text-black border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500"
                     />
@@ -59,16 +90,23 @@ export default function Home() {
                       />
                     </svg>
                   </div>
-                  <select className="px-4 py-3 border text-black border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500">
-                    <option>Penulis</option>
-                    <option>Judul</option>
-                    <option>ISBN</option>
-                    <option>Kata Kunci</option>
+                  <select 
+                    value={searchType}
+                    onChange={(e) => setSearchType(e.target.value)}
+                    className="px-4 py-3 border text-black border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="all">Semua</option>
+                    <option value="title">Judul</option>
+                    <option value="author">Penulis</option>
+                    <option value="isbn">ISBN</option>
                   </select>
                 </div>
 
                 {/* Tombol Telusuri Koleksi */}
-                <button className="bg-red-600 hover:bg-red-700 font-medium py-3 px-6 rounded-full transition-colors duration-200">
+                <button 
+                  onClick={handleSearch}
+                  className="bg-red-600 hover:bg-red-700 font-medium py-3 px-6 rounded-full transition-colors duration-200"
+                >
                   Telusuri Koleksi
                 </button>
               </div>
@@ -76,12 +114,13 @@ export default function Home() {
           </div>
         </div>
       </div>
+
       {/* Pintasan */}
       <div className="w-full p-6 lg:p-[40px]">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 lg:px-16 text-gray-900">
           {/* Card 1 */}
           <a
-            href="#"
+            href="/katalog"
             className="flex flex-col items-center text-center shadow-lg rounded-lg p-6 bg-white hover:shadow-xl transition-shadow h-full"
           >
             <span>
@@ -107,8 +146,7 @@ export default function Home() {
             </span>
             <h2 className="text-lg font-bold mt-4">Katalog Online</h2>
             <p className="text-[12px] text-gray-600 mt-2">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus,
-              distinctio.
+              Telusuri koleksi buku dan e-book perpustakaan UMC
             </p>
           </a>
 
@@ -137,8 +175,7 @@ export default function Home() {
             </span>
             <h2 className="text-lg font-bold mt-4">Repositori Digital</h2>
             <p className="text-[12px] text-gray-600 mt-2">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus,
-              distinctio.
+              Akses jurnal, skripsi, dan publikasi ilmiah UMC
             </p>
           </a>
 
@@ -167,14 +204,13 @@ export default function Home() {
             </span>
             <h2 className="text-lg font-bold mt-4">Informasi Lokasi</h2>
             <p className="text-[12px] text-gray-600 mt-2">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus,
-              distinctio.
+              Temukan lokasi perpustakaan dan fasilitasnya
             </p>
           </a>
 
           {/* Card 4 */}
           <a
-            href="#"
+            href="/katalog"
             className="flex flex-col items-center text-center shadow-lg rounded-lg p-6 bg-white hover:shadow-xl transition-shadow h-full"
           >
             <span>
@@ -195,24 +231,23 @@ export default function Home() {
                 <path d="M9 10h6" />
               </svg>
             </span>
-            <h2 className="text-lg font-bold mt-4">Katalog Online</h2>
+            <h2 className="text-lg font-bold mt-4">Koleksi Terbaru</h2>
             <p className="text-[12px] text-gray-600 mt-2">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus,
-              distinctio.
+              Lihat koleksi buku terbaru yang tersedia
             </p>
           </a>
         </div>
       </div>
-      {/* Pintasan end */}
 
       {/* Daftar buku dan Ebook */}
-
-      <div className="p-6 lg:p-[50px]">
+      <div className="p-6 lg:p-[50px] flex justify-center">
         <BookList />
       </div>
 
       {/* Footer */}
-      <Footer />
+      <div>
+        <Footer />
+      </div>
     </div>
   );
 }

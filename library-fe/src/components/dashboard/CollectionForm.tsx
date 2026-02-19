@@ -54,7 +54,7 @@ export default function CollectionForm({
         }
       });
 
-      const res = await fetch(`${API_BASE_URL}/api/collections`, {
+      const res = await fetch(`${API_BASE_URL}api/collections`, {
         method: "POST",
         credentials: "include",
         body: data,

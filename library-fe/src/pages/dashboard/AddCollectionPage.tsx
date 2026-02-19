@@ -34,7 +34,7 @@ export default function AddCollectionPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/categories`);
+      const res = await fetch(`${API_BASE_URL}api/categories`);
       const data = await res.json();
       if (data.success) {
         setCategories(data.data);
@@ -76,7 +76,7 @@ export default function AddCollectionPage() {
         formDataToSend.append("cover", coverFile);
       }
 
-      const res = await fetch(`${API_BASE_URL}/api/collections`, {
+      const res = await fetch(`${API_BASE_URL}api/collections`, {
         method: "POST",
         credentials: "include",
         body: formDataToSend,
