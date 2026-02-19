@@ -9,6 +9,7 @@ type ServiceResponse<T> = {
 };
 
 export class AuthService {
+  constructor() {}
   private readonly CAMPUS_API_TIMEOUT = 5000; // 5 seconds
 
   /**
@@ -237,6 +238,149 @@ export class AuthService {
       return {
         success: false,
         message: "Failed to verify with Campus API",
+        data: null,
+      };
+    }
+  }
+
+  /**
+   * Register user with email & password (credential-based)
+   */
+  async registerWithCredentials(
+    name: string,
+    email: string,
+    password: string,
+  ): Promise<ServiceResponse<any>> {
+    try {
+      // Check if user already exists
+      const existingUser = await db.query.Users.findFirst({
+        where: eq(Users.email, email),
+      });
+
+      if (existingUser) {
+        return {
+          success: false,
+          message: "Email sudah terdaftar",
+          data: null,
+        };
+      }
+
+      // Lazy import to avoid circular dependency (lib/auth.ts <-> auth.service.ts)
+      const { auth } = require("../lib/auth");
+
+      // Create user via Better Auth's signUpEmail API
+      const result = await auth.api.signUpEmail({
+        body: {
+          name,
+          email,
+          password,
+        },
+      });
+
+      if (!result?.user) {
+        return {
+          success: false,
+          message: "Gagal membuat akun",
+          data: null,
+        };
+      }
+
+      return {
+        success: true,
+        message: "Registrasi berhasil",
+        data: {
+          user: {
+            id: result.user.id,
+            name: result.user.name,
+            email: result.user.email,
+            role: result.user.role || "student",
+            createdAt: result.user.createdAt,
+          },
+          token: result.token,
+        },
+      };
+    } catch (error: any) {
+      console.error("[AuthService] Register Error:", error);
+
+      // Handle Better Auth specific errors
+      if (
+        error?.message?.includes("already exists") ||
+        error?.body?.message?.includes("already exists")
+      ) {
+        return {
+          success: false,
+          message: "Email sudah terdaftar",
+          data: null,
+        };
+      }
+
+      return {
+        success: false,
+        message: error?.message || "Gagal melakukan registrasi",
+        data: null,
+      };
+    }
+  }
+
+  /**
+   * Login user with email & password (credential-based)
+   */
+  async loginWithCredentials(
+    email: string,
+    password: string,
+  ): Promise<ServiceResponse<any>> {
+    try {
+      // Lazy import to avoid circular dependency (lib/auth.ts <-> auth.service.ts)
+      const { auth } = require("../lib/auth");
+
+      const result = await auth.api.signInEmail({
+        body: {
+          email,
+          password,
+        },
+      });
+
+      if (!result?.user) {
+        return {
+          success: false,
+          message: "Email atau password salah",
+          data: null,
+        };
+      }
+
+      return {
+        success: true,
+        message: "Login berhasil",
+        data: {
+          user: {
+            id: result.user.id,
+            name: result.user.name,
+            email: result.user.email,
+            role: result.user.role || "student",
+            image: result.user.image,
+          },
+          token: result.token,
+        },
+      };
+    } catch (error: any) {
+      console.error("[AuthService] Login Error:", error);
+
+      // Better Auth throws for invalid credentials
+      if (
+        error?.message?.includes("Invalid") ||
+        error?.message?.includes("credentials") ||
+        error?.body?.message?.includes("Invalid")
+      ) {
+        return {
+          success: false,
+          message: "Email atau password salah",
+          data: null,
+        };
+      }
+
+      return {
+        success: false,
+        message: error?.message || "Gagal melakukan login",
         data: null,
       };
     }

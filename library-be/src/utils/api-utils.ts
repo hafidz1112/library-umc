@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from "express";
+import { type Request, type Response, type NextFunction } from "express";
 import { auth } from "../lib/auth";
-import { ZodSchema, ZodError, ZodIssue } from "zod";
+import { type ZodSchema, ZodError, type ZodIssue } from "zod";
 
 type ApiResponseData =
   | Record<string, unknown>

@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 import { LoanService } from "../service/loan.service";
 
 const loanService = new LoanService();

@@ -2,10 +2,10 @@ import { db } from "../db";
 import { items, collections, locations } from "../db/schema";
 import { eq, and, like } from "drizzle-orm";
 import {
-  createItemSchema,
-  updateItemSchema,
+  type createItemSchema,
+  type updateItemSchema,
 } from "../validation/item.validation";
-import { z } from "zod";
+import { type z } from "zod";
 
 type CreateItemData = z.infer<typeof createItemSchema>;
 type UpdateItemData = z.infer<typeof updateItemSchema>;

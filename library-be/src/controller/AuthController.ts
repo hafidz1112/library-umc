@@ -1,13 +1,93 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 import { AuthService } from "../service/auth.service";
-import { loginSchema } from "../validation";
+import {
+  loginSchema,
+  registerSchema,
+  loginCredentialSchema,
+} from "../validation";
 import { UserService } from "../service/user.service";
 
 const authService = new AuthService();
 
 export class AuthController {
   /**
-   * Login Controller - Verify user with Campus API
+   * Register Controller - Register user with name, email, password
+   */
+  async register(req: Request, res: Response) {
+    try {
+      const validation = registerSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        res.status(400).json({
+          success: false,
+          message: "Validation Error",
+          data: validation.error.flatten(),
+        });
+        return;
+      }
+
+      const { name, email, password } = validation.data;
+
+      const result = await authService.registerWithCredentials(
+        name,
+        email,
+        password,
+      );
+
+      if (!result.success) {
+        res.status(409).json(result);
+        return;
+      }
+
+      res.status(201).json(result);
+    } catch (error) {
+      console.error("[AuthController] Error in register:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        data: null,
+      });
+    }
+  }
+
+  /**
+   * Login Controller - Login with email & password
+   */
+  async loginCredential(req: Request, res: Response) {
+    try {
+      const validation = loginCredentialSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        res.status(400).json({
+          success: false,
+          message: "Validation Error",
+          data: validation.error.flatten(),
+        });
+        return;
+      }
+
+      const { email, password } = validation.data;
+
+      const result = await authService.loginWithCredentials(email, password);
+
+      if (!result.success) {
+        res.status(401).json(result);
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("[AuthController] Error in loginCredential:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        data: null,
+      });
+    }
+  }
+
+  /**
+   * Login Controller - Verify user with Campus API (Google OAuth callback)
    */
   async login(req: Request, res: Response) {
     try {

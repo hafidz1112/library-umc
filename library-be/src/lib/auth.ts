@@ -44,7 +44,7 @@ export const auth = betterAuth({
   },
   advanced: {
     defaultCookieAttributes: {
-      sameSite: "none",
+      sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     },
   },
@@ -59,41 +59,34 @@ export const auth = betterAuth({
       create: {
         before: async (user) => {
           console.log("[HOOK] User Create BEFORE:", user.email);
-          // Validasi: User harus terdaftar di API Kampus
+
+          // Cek apakah user terdaftar di API Kampus (opsional)
+          // Jika tidak ditemukan, tetap izinkan register biasa dengan role default
           const campusUser = await authService.getCampusUser(user.email);
-          if (!campusUser) {
-            console.warn(
-              "[HOOK] Campus Verification FAILED. Marking user as UNAUTHORIZED.",
+          if (!campusUser || !campusUser.success) {
+            console.log(
+              "[HOOK] Campus user not found — proceeding as regular registration.",
             );
-            // Soft Block: Jangan throw error (bikin crash), tapi tandai role user ini
-            return {
-              data: {
-                ...user,
-                role: "unauthorized",
-              },
-            };
+            // Tetap izinkan user dengan role default (student)
+            return { data: user };
           }
+
           console.log("[HOOK] Campus Verification PASSED.");
           return { data: user };
         },
         after: async (user) => {
-          // Hanya sync jika user VALID (bukan unauthorized)
-          if (user.role === "unauthorized") {
+          console.log("[HOOK] User Create AFTER Triggered. ID:", user.id);
+
+          // Coba sync dengan kampus, skip jika tidak ditemukan
+          const campusUser = await authService.getCampusUser(user.email);
+          if (campusUser && campusUser.success) {
+            console.log("[HOOK] Calling SyncMember...");
+            await authService.syncMember(user.id, campusUser.data);
+          } else {
             console.log(
-              "[HOOK] Skipping Sync for UNAUTHORIZED user:",
+              "[HOOK] No campus data — skipping member sync for:",
               user.email,
             );
-            return;
-          }
-
-          console.log("[HOOK] User Create AFTER Triggered. ID:", user.id);
-          // Sync: Masukkan data ke tabel Member menggunakan Service
-          const campusUser = await authService.getCampusUser(user.email);
-          if (campusUser) {
-            console.log("[HOOK] Calling SyncMember...");
-            await authService.syncMember(user.id, campusUser);
-          } else {
-            console.warn("[HOOK] Failed to fetch campus user in AFTER hook!");
           }
         },
       },

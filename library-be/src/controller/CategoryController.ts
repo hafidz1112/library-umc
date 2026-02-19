@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 import { CategoryService } from "../service/category.service";
 import {
   createCategorySchema,

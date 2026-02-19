@@ -2,8 +2,7 @@ import { auth } from "../lib/auth";
 import type { Request } from "express";
 
 // Definisi Role seuai schema/better-auth
-import { ROLES } from "./auth-types";
-import { Role } from "./auth-types";
+import { ROLES, type Role } from "./auth-types";
 
 /**
  * GET current session from request headers (Server-side check)

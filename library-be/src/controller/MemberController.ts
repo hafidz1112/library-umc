@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 import { MemberService } from "../service/member.service";
 import { updateProfileSchema } from "../validation/member.validation";
 

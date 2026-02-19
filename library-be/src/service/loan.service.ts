@@ -11,8 +11,9 @@ export class LoanService {
       where: eq(items.id, itemId),
     });
 
-    if (!item || item.status !== "available")
+    if (!item || item.status !== "available") {
       throw new Error("Buku ini tidak tersedia");
+    }
 
     // Generate token & expire (2 jam)
     const token = crypto.randomBytes(16).toString("hex");
@@ -52,10 +53,13 @@ export class LoanService {
       },
     });
 
-    if (!loan) throw new Error("Token invalid atau peminjaman sudah di proses");
+    if (!loan) {
+      throw new Error("Token invalid atau peminjaman sudah di proses");
+    }
 
-    if (new Date() > loan.verificationExpiresAt!)
+    if (new Date() > loan.verificationExpiresAt!) {
       throw new Error("Token Expired");
+    }
 
     return loan;
   }
