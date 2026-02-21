@@ -14,6 +14,8 @@ import {
   Calendar,
   Trash2,
   Edit,
+  ChevronRight,
+  LayoutDashboard
 } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api-config";
 
@@ -218,84 +220,95 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030304] flex font-body text-white relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="radial-blur-orange w-96 h-96 top-0 right-0"></div>
-      <div className="radial-blur-gold w-96 h-96 bottom-0 left-0"></div>
-
-      {/* Sidebar */}
-      <aside className="w-72 bg-[#0F1115] border-r border-white/10 hidden lg:flex flex-col relative z-10">
-        <div className="p-6 border-b border-white/10">
-          <h1 className="text-2xl font-heading font-bold gradient-text">
-            MUCILIB Admin
+    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
+      {/* Sidebar - Clean & Minimalist */}
+      <aside className="w-72 bg-white border-r border-slate-200 hidden lg:flex flex-col sticky top-0 h-screen z-20">
+        <div className="p-8">
+          <h1 className="text-[#9a1b1b] text-2xl font-black tracking-tighter flex items-center gap-2">
+            <LayoutDashboard className="w-6 h-6" />
+            MUCILIB
           </h1>
-          <p className="text-[#94A3B8] text-xs font-mono mt-1 uppercase tracking-wider">
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">
             Super Admin Panel
           </p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 px-4 space-y-2">
           <Link
             to="/"
-            className="flex items-center gap-3 px-4 py-3 text-sm font-mono text-[#94A3B8] hover:text-white hover:bg-white/5 rounded-xl transition-all duration-300"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-500 hover:text-[#9a1b1b] hover:bg-red-50 rounded-2xl transition-all"
           >
             <Home className="w-5 h-5" />
             Home
           </Link>
+          
+          <div className="pt-4 pb-2 px-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Utama</p>
+          </div>
+
           <button
             onClick={() => setActiveTab("collections")}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-mono rounded-xl transition-all duration-300 ${
+            className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold rounded-2xl transition-all ${
               activeTab === "collections"
-                ? "text-[#F7931A] bg-[#F7931A]/10 border border-[#F7931A]/30 glow-orange"
-                : "text-[#94A3B8] hover:text-white hover:bg-white/5"
+                ? "bg-[#9a1b1b] text-white shadow-lg shadow-red-900/20"
+                : "text-slate-500 hover:bg-slate-100"
             }`}
           >
-            <Book className="w-5 h-5" />
-            Koleksi Pustaka
+            <div className="flex items-center gap-3">
+              <Book className="w-5 h-5" />
+              Koleksi Pustaka
+            </div>
+            {activeTab === "collections" && <ChevronRight size={14} />}
           </button>
+
           <button
             onClick={() => setActiveTab("categories")}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-mono rounded-xl transition-all duration-300 ${
+            className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold rounded-2xl transition-all ${
               activeTab === "categories"
-                ? "text-[#F7931A] bg-[#F7931A]/10 border border-[#F7931A]/30 glow-orange"
-                : "text-[#94A3B8] hover:text-white hover:bg-white/5"
+                ? "bg-[#9a1b1b] text-white shadow-lg shadow-red-900/20"
+                : "text-slate-500 hover:bg-slate-100"
             }`}
           >
-            <Tag className="w-5 h-5" />
-            Kategori
+            <div className="flex items-center gap-3">
+              <Tag className="w-5 h-5" />
+              Kategori
+            </div>
+            {activeTab === "categories" && <ChevronRight size={14} />}
           </button>
+
           <button
             onClick={() => setActiveTab("guests")}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-mono rounded-xl transition-all duration-300 ${
+            className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold rounded-2xl transition-all ${
               activeTab === "guests"
-                ? "text-[#F7931A] bg-[#F7931A]/10 border border-[#F7931A]/30 glow-orange"
-                : "text-[#94A3B8] hover:text-white hover:bg-white/5"
+                ? "bg-[#9a1b1b] text-white shadow-lg shadow-red-900/20"
+                : "text-slate-500 hover:bg-slate-100"
             }`}
           >
-            <Users className="w-5 h-5" />
-            Pengunjung
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5" />
+              Pengunjung
+            </div>
+            {activeTab === "guests" && <ChevronRight size={14} />}
           </button>
         </nav>
 
-        <div className="p-4 border-t border-white/10">
-          <div className="glass rounded-xl p-4 mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#EA580C] to-[#F7931A] flex items-center justify-center text-white font-heading font-bold">
-                {session?.user?.name?.[0]?.toUpperCase() || "A"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-mono font-medium text-sm text-white truncate">
-                  {session?.user?.name || "Admin"}
-                </p>
-                <p className="text-[#94A3B8] text-xs font-mono uppercase tracking-wider">
-                  Super Admin
-                </p>
-              </div>
+        <div className="p-4 border-t border-slate-100">
+          <div className="bg-slate-50 rounded-2xl p-4 mb-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#9a1b1b] flex items-center justify-center text-white font-bold text-lg shadow-inner">
+              {session?.user?.name?.[0]?.toUpperCase() || "A"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-xs text-slate-900 truncate">
+                {session?.user?.name || "Admin"}
+              </p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                Super Admin
+              </p>
             </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-mono text-[#94A3B8] hover:text-white hover:bg-white/5 rounded-xl transition-all duration-300"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-2xl transition-all"
           >
             <LogOut className="w-4 h-4" />
             Sign Out
@@ -304,157 +317,132 @@ export default function SuperAdminDashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto relative z-10">
+      <main className="flex-1 p-8 overflow-y-auto relative">
         {/* Header */}
-        <header className="glass sticky top-0 z-20 px-8 py-4 flex items-center justify-between">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
           <div>
-            <h2 className="text-2xl font-heading font-bold text-white">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
               {activeTab === "collections" && "Koleksi Pustaka"}
               {activeTab === "categories" && "Kategori Buku"}
               {activeTab === "guests" && "Data Pengunjung"}
             </h2>
-            <p className="text-[#94A3B8] text-sm font-mono mt-1">
-              Manage your library {activeTab}
+            <p className="text-slate-400 font-medium italic">
+              Sistem Manajemen Perpustakaan Digital UMC
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          
+          <div className="flex items-center gap-3">
             {activeTab === "collections" && (
               <Link
                 to="/dashboard/super-admin/collections/add"
-                className="btn-primary flex items-center gap-2 text-sm"
+                className="bg-[#9a1b1b] hover:bg-[#7a1515] text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-red-900/20 transition-all active:scale-95"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 Tambah Koleksi
               </Link>
             )}
             {activeTab === "categories" && (
               <Link
                 to="/dashboard/super-admin/categories/add"
-                className="btn-primary flex items-center gap-2 text-sm"
+                className="bg-[#9a1b1b] hover:bg-[#7a1515] text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-red-900/20 transition-all active:scale-95"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 Tambah Kategori
               </Link>
             )}
             {activeTab === "guests" && (
               <Link
                 to="/dashboard/super-admin/guests/add"
-                className="btn-primary flex items-center gap-2 text-sm"
+                className="bg-[#9a1b1b] hover:bg-[#7a1515] text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-red-900/20 transition-all active:scale-95"
               >
-                <UserPlus className="w-4 h-4" />
+                <UserPlus className="w-5 h-5" />
                 Tambah Pengunjung
               </Link>
             )}
           </div>
         </header>
 
-        <div className="p-8 space-y-8">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card-standard group">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-[#F7931A]/20 border border-[#F7931A]/50 group-hover:glow-orange transition-all duration-300">
-                  <Book className="w-6 h-6 text-[#F7931A]" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-[#FFD600]" />
-              </div>
-              <h3 className="text-[#94A3B8] text-sm font-mono uppercase tracking-wider mb-2">
-                Total Koleksi
-              </h3>
-              <p className="text-4xl font-heading font-bold gradient-text">
-                {stats.totalCollections}
-              </p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex items-center gap-5 group hover:shadow-md transition-all">
+            <div className="p-4 rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+              <Book className="w-6 h-6" />
             </div>
-
-            <div className="card-standard group">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-[#F7931A]/20 border border-[#F7931A]/50 group-hover:glow-orange transition-all duration-300">
-                  <Tag className="w-6 h-6 text-[#F7931A]" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-[#FFD600]" />
-              </div>
-              <h3 className="text-[#94A3B8] text-sm font-mono uppercase tracking-wider mb-2">
-                Total Kategori
-              </h3>
-              <p className="text-4xl font-heading font-bold gradient-text">
-                {stats.totalCategories}
-              </p>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Koleksi</p>
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.totalCollections}</p>
             </div>
-
-            <div className="card-standard group">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-[#F7931A]/20 border border-[#F7931A]/50 group-hover:glow-orange transition-all duration-300">
-                  <Users className="w-6 h-6 text-[#F7931A]" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-[#FFD600]" />
-              </div>
-              <h3 className="text-[#94A3B8] text-sm font-mono uppercase tracking-wider mb-2">
-                Total Pengunjung
-              </h3>
-              <p className="text-4xl font-heading font-bold gradient-text">
-                {stats.totalGuests}
-              </p>
-            </div>
+            <TrendingUp className="ml-auto w-5 h-5 text-emerald-500 opacity-50" />
           </div>
 
-          {/* Search Bar - Shared for Collections and Categories */}
-          {(activeTab === "collections" || activeTab === "categories") && (
-            <div className="glass rounded-xl p-4">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
-                <input
-                  type="text"
-                  placeholder={
-                    activeTab === "collections"
-                      ? "Cari buku berdasarkan judul atau penulis..."
-                      : "Cari kategori..."
-                  }
-                  className="w-full pl-12 pr-4 py-3 bg-black/50 border border-white/10 rounded-lg text-white placeholder:text-[#94A3B8] focus:outline-none focus:border-[#F7931A] focus:glow-orange transition-all duration-300"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex items-center gap-5 group hover:shadow-md transition-all">
+            <div className="p-4 rounded-2xl bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all">
+              <Tag className="w-6 h-6" />
             </div>
-          )}
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Kategori</p>
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.totalCategories}</p>
+            </div>
+            <TrendingUp className="ml-auto w-5 h-5 text-emerald-500 opacity-50" />
+          </div>
 
-          {/* COLLECTIONS VIEW */}
+          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex items-center gap-5 group hover:shadow-md transition-all">
+            <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+              <Users className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Pengunjung</p>
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.totalGuests}</p>
+            </div>
+            <TrendingUp className="ml-auto w-5 h-5 text-emerald-500 opacity-50" />
+          </div>
+        </div>
+
+        {/* Search Bar Container */}
+        {(activeTab === "collections" || activeTab === "categories") && (
+          <div className="mb-8 relative max-w-xl">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5" />
+            <input
+              type="text"
+              placeholder={activeTab === "collections" ? "Cari buku berdasarkan judul atau penulis..." : "Cari kategori..."}
+              className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-red-500/5 focus:border-[#9a1b1b] transition-all font-medium placeholder:text-slate-300"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        )}
+
+        {/* CONTENT VIEW - Card Based for Collections */}
+        <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
           {activeTab === "collections" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCollections.map((collection) => (
-                <div key={collection.id} className="card-standard group">
-                  <div className="aspect-[3/4] bg-black/50 rounded-lg mb-4 overflow-hidden relative">
+                <div key={collection.id} className="group bg-slate-50/50 rounded-2xl p-4 border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+                  <div className="aspect-[3/4] rounded-xl mb-4 overflow-hidden relative shadow-sm group-hover:shadow-md transition-all">
                     {collection.image ? (
                       <img
                         src={collection.image}
                         alt={collection.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Book className="w-16 h-16 text-[#94A3B8]" />
+                      <div className="w-full h-full bg-slate-200 flex items-center justify-center">
+                        <Book className="w-12 h-12 text-slate-400" />
                       </div>
                     )}
+                    
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
                       <button
-                        onClick={() =>
-                          navigate(
-                            `/dashboard/collections/edit/${collection.id}`,
-                          )
-                        }
-                        className="p-2 bg-white/10 hover:bg-[#FFD600] rounded-full text-white transition-colors"
+                        onClick={() => navigate(`/dashboard/collections/edit/${collection.id}`)}
+                        className="p-3 bg-white text-slate-900 rounded-xl hover:bg-blue-600 hover:text-white transition-all active:scale-90"
                         title="Edit Koleksi"
                       >
                         <Edit className="w-5 h-5" />
                       </button>
                       <button
-                        onClick={() =>
-                          handleDeleteCollection(
-                            collection.id,
-                            collection.title,
-                          )
-                        }
-                        className="p-2 bg-white/10 hover:bg-red-500 rounded-full text-white transition-colors"
+                        onClick={() => handleDeleteCollection(collection.id, collection.title)}
+                        className="p-3 bg-white text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all active:scale-90"
                         title="Hapus Koleksi"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -462,27 +450,22 @@ export default function SuperAdminDashboard() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <h3 className="font-heading font-semibold text-lg text-white line-clamp-2">
+                    <span className="px-3 py-1 rounded-full bg-red-50 text-[#9a1b1b] text-[10px] font-bold uppercase tracking-wider">
+                      {collection.category?.name || "Uncategorized"}
+                    </span>
+                    <h3 className="font-bold text-slate-800 line-clamp-2 leading-tight">
                       {collection.title}
                     </h3>
-                    <p className="text-[#94A3B8] text-sm font-mono">
+                    <p className="text-slate-400 text-xs font-semibold">
                       {collection.author}
                     </p>
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-full bg-[#F7931A]/20 border border-[#F7931A]/50 text-[#F7931A] text-xs font-mono uppercase tracking-wider">
-                        {collection.category?.name || "Uncategorized"}
-                      </span>
-                      <span className="text-[#94A3B8] text-xs font-mono">
-                        {collection.publicationYear}
-                      </span>
-                    </div>
                   </div>
                 </div>
               ))}
               {filteredCollections.length === 0 && (
-                <div className="col-span-full py-12 text-center text-[#94A3B8] font-mono">
-                  <Book className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  Tidak ada koleksi ditemukan.
+                <div className="col-span-full py-20 text-center">
+                  <Book className="w-16 h-16 mx-auto mb-4 text-slate-200" />
+                  <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Koleksi tidak ditemukan</p>
                 </div>
               )}
             </div>
@@ -490,230 +473,133 @@ export default function SuperAdminDashboard() {
 
           {/* CATEGORIES VIEW */}
           {activeTab === "categories" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredCategories.map((category) => (
-                <div
-                  key={category.id}
-                  className="card-standard group relative hover:-translate-y-1 transition-transform"
-                >
+                <div key={category.id} className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-lg transition-all">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-lg bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">
-                      <Tag className="w-6 h-6" />
+                    <div className="p-3 rounded-xl bg-red-50 text-[#9a1b1b]">
+                      <Tag className="w-5 h-5" />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                       <button
-                        onClick={() =>
-                          navigate(`/dashboard/categories/edit/${category.id}`)
-                        }
-                        className="text-[#94A3B8] hover:text-[#FFD600] transition-colors"
-                        title="Edit Kategori"
+                        onClick={() => navigate(`/dashboard/categories/edit/${category.id}`)}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                       >
-                        <Edit className="w-5 h-5" />
+                        <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() =>
-                          handleDeleteCategory(category.id, category.name)
-                        }
-                        className="text-[#94A3B8] hover:text-red-500 transition-colors"
-                        title="Hapus Kategori"
+                        onClick={() => handleDeleteCategory(category.id, category.name)}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                  <h3 className="text-xl font-heading font-bold text-white mb-2">
-                    {category.name}
-                  </h3>
-                  <p className="text-[#94A3B8] text-sm font-mono line-clamp-2 mb-4 h-10">
-                    {category.description || "Tidak ada deskripsi"}
+                  <h3 className="font-bold text-slate-800 mb-1">{category.name}</h3>
+                  <p className="text-slate-400 text-[11px] font-medium line-clamp-2 mb-4">
+                    {category.description || "Tidak ada deskripsi tersedia"}
                   </p>
-                  <div className="pt-4 border-t border-white/10 flex justify-between items-center text-xs text-[#94A3B8] font-mono">
-                    <span>ID: {category.id}</span>
-                    <span>
-                      {new Date(category.createdAt).toLocaleDateString()}
-                    </span>
+                  <div className="pt-4 border-t border-slate-100 flex justify-between text-[10px] text-slate-400 font-bold">
+                    <span>ID: #{category.id}</span>
+                    <span>{new Date(category.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               ))}
               {filteredCategories.length === 0 && (
-                <div className="col-span-full py-12 text-center text-[#94A3B8] font-mono">
-                  <Tag className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  Tidak ada kategori ditemukan.
+                <div className="col-span-full py-20 text-center">
+                  <Tag className="w-16 h-16 mx-auto mb-4 text-slate-200" />
+                  <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Kategori tidak ditemukan</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* GUESTS VIEW */}
+          {/* GUESTS VIEW - Table Based */}
           {activeTab === "guests" && (
-            <div className="space-y-6">
-              {/* Table Container */}
-              <div className="card-standard overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-white/10">
-                        <th className="text-left p-4 text-[#94A3B8] font-mono text-sm font-semibold">
-                          Nama
-                        </th>
-                        <th className="text-left p-4 text-[#94A3B8] font-mono text-sm font-semibold">
-                          NIM/NIDN
-                        </th>
-                        <th className="text-left p-4 text-[#94A3B8] font-mono text-sm font-semibold">
-                          Email
-                        </th>
-                        <th className="text-left p-4 text-[#94A3B8] font-mono text-sm font-semibold">
-                          Fakultas
-                        </th>
-                        <th className="text-left p-4 text-[#94A3B8] font-mono text-sm font-semibold">
-                          Prodi
-                        </th>
-                        <th className="text-left p-4 text-[#94A3B8] font-mono text-sm font-semibold">
-                          Tanggal Kunjungan
-                        </th>
-                        <th className="text-center p-4 text-[#94A3B8] font-mono text-sm font-semibold">
-                          Aksi
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredGuests.map((guest) => (
-                        <tr
-                          key={guest.id}
-                          className="border-b border-white/5 hover:bg-white/5 transition-colors"
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50/50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pengunjung</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identitas</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fakultas / Prodi</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filteredGuests.map((guest) => (
+                    <tr key={guest.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-xs font-bold">
+                            {guest.name[0]}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 text-sm">{guest.name}</p>
+                            <p className="text-[10px] text-slate-400 font-medium">{guest.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-bold">
+                          {guest.identifier}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-xs font-bold text-slate-700">{guest.faculty}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">{guest.major}</p>
+                      </td>
+                      <td className="px-6 py-4 text-[10px] text-slate-500 font-bold">
+                        {new Date(guest.visitDate).toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric"
+                        })}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => handleDeleteGuest(guest.id, guest.name)}
+                          className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
                         >
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-full bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">
-                                <Users className="w-4 h-4" />
-                              </div>
-                              <span className="text-white font-medium">
-                                {guest.name}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[#FFD600] font-mono text-sm">
-                              {guest.identifier}
-                            </span>
-                          </td>
-                          <td className="p-4 text-[#94A3B8] font-mono text-sm">
-                            {guest.email}
-                          </td>
-                          <td className="p-4 text-white font-mono text-sm">
-                            {guest.faculty}
-                          </td>
-                          <td className="p-4 text-[#94A3B8] font-mono text-sm">
-                            {guest.major}
-                          </td>
-                          <td className="p-4 text-[#94A3B8] font-mono text-sm">
-                            {new Date(guest.visitDate).toLocaleDateString(
-                              "id-ID",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              },
-                            )}
-                          </td>
-                          <td className="p-4 text-center">
-                            <button
-                              onClick={() =>
-                                handleDeleteGuest(guest.id, guest.name)
-                              }
-                              className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 hover:border-red-500 transition-all"
-                              title="Hapus Log"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredGuests.length === 0 && (
+                <div className="py-20 text-center">
+                  <Users className="w-16 h-16 mx-auto mb-4 text-slate-200" />
+                  <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Data pengunjung kosong</p>
                 </div>
-
-                {/* Empty State */}
-                {filteredGuests.length === 0 && (
-                  <div className="py-12 text-center text-[#94A3B8] font-mono">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    {searchTerm
-                      ? "Tidak ada pengunjung yang cocok dengan pencarian."
-                      : "Belum ada data pengunjung."}
-                  </div>
-                )}
-              </div>
-
-              {/* Stats Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="card-standard">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-lg bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">
-                      <Users className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-[#94A3B8] text-sm font-mono">
-                        Total Pengunjung
-                      </p>
-                      <p className="text-2xl font-heading font-bold text-white">
-                        {guests.length}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-standard">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-lg bg-[#FFD600]/10 border border-[#FFD600]/30 text-[#FFD600]">
-                      <Calendar className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-[#94A3B8] text-sm font-mono">
-                        Hari Ini
-                      </p>
-                      <p className="text-2xl font-heading font-bold text-white">
-                        {
-                          guests.filter((g) => {
-                            const today = new Date();
-                            const visitDate = new Date(g.visitDate);
-                            return (
-                              visitDate.toDateString() === today.toDateString()
-                            );
-                          }).length
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-standard">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-lg bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981]">
-                      <TrendingUp className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-[#94A3B8] text-sm font-mono">
-                        Bulan Ini
-                      </p>
-                      <p className="text-2xl font-heading font-bold text-white">
-                        {
-                          guests.filter((g) => {
-                            const now = new Date();
-                            const visitDate = new Date(g.visitDate);
-                            return (
-                              visitDate.getMonth() === now.getMonth() &&
-                              visitDate.getFullYear() === now.getFullYear()
-                            );
-                          }).length
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>
+
+        {/* Guest Stats Summary (Visible only in Guest Tab) */}
+        {activeTab === "guests" && guests.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hari Ini</span>
+              <span className="text-xl font-black text-slate-900">
+                {guests.filter(g => new Date(g.visitDate).toDateString() === new Date().toDateString()).length}
+              </span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bulan Ini</span>
+              <span className="text-xl font-black text-slate-900">
+                {guests.filter(g => {
+                  const now = new Date();
+                  const d = new Date(g.visitDate);
+                  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                }).length}
+              </span>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

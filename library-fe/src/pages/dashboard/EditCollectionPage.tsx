@@ -1,6 +1,7 @@
+// src/pages/EditCollectionPage.tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router";
-import { ArrowLeft, Save, Loader2, Book, Upload, X } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Book, Upload, X, Info, Image as ImageIcon } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api-config";
 
 interface Category {
@@ -32,20 +33,15 @@ export default function EditCollectionPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch categories
         const categoriesRes = await fetch(`${API_BASE_URL}api/categories`);
         const categoriesData = await categoriesRes.json();
         if (categoriesData.success) {
           setCategories(categoriesData.data || []);
         }
 
-        // Fetch collection
-        const collectionRes = await fetch(
-          `${API_BASE_URL}api/collections/${id}`,
-          {
-            credentials: "include",
-          },
-        );
+        const collectionRes = await fetch(`${API_BASE_URL}api/collections/${id}`, {
+          credentials: "include",
+        });
         const collectionData = await collectionRes.json();
 
         if (collectionData.success && collectionData.data) {
@@ -67,13 +63,11 @@ export default function EditCollectionPage() {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
-        alert("Gagal memuat data");
         navigate("/dashboard/super-admin");
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [id, navigate]);
 
@@ -82,9 +76,7 @@ export default function EditCollectionPage() {
     if (file) {
       setNewImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -97,21 +89,10 @@ export default function EditCollectionPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-
     try {
       const submitData = new FormData();
-      submitData.append("title", formData.title);
-      submitData.append("author", formData.author);
-      submitData.append("publisher", formData.publisher);
-      submitData.append("publicationYear", formData.publicationYear);
-      submitData.append("isbn", formData.isbn);
-      submitData.append("categoryId", formData.categoryId);
-      submitData.append("description", formData.description);
-      submitData.append("type", formData.type);
-
-      if (newImageFile) {
-        submitData.append("cover", newImageFile);
-      }
+      Object.entries(formData).forEach(([key, value]) => submitData.append(key, value));
+      if (newImageFile) submitData.append("cover", newImageFile);
 
       const res = await fetch(`${API_BASE_URL}api/collections/${id}`, {
         method: "PATCH",
@@ -120,193 +101,143 @@ export default function EditCollectionPage() {
       });
 
       const data = await res.json();
-
       if (data.success) {
         alert("✅ Koleksi berhasil diperbarui!");
         navigate("/dashboard/super-admin");
       } else {
-        alert(`❌ Gagal memperbarui koleksi: ${data.message}`);
+        alert(`❌ Gagal: ${data.message}`);
       }
     } catch (error) {
-      console.error("Error updating collection:", error);
       alert("Terjadi kesalahan saat memperbarui koleksi");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const inputClass = "w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#9a1b1b]/5 focus:border-[#9a1b1b] transition-all font-medium text-slate-700 placeholder:text-slate-300 text-sm";
+  const labelClass = "block text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2 ml-1";
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#030304] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#F7931A] animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-[#9a1b1b] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#030304] font-body text-white relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="radial-blur-orange w-96 h-96 top-0 right-0"></div>
-      <div className="radial-blur-gold w-96 h-96 bottom-0 left-0"></div>
-
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+      <div className="max-w-4xl mx-auto px-6 py-10">
+        
+        {/* Header Section */}
+        <div className="mb-10">
           <Link
             to="/dashboard/super-admin"
-            className="inline-flex items-center gap-2 text-[#94A3B8] hover:text-white transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-[#9a1b1b] font-bold text-xs transition-all mb-6 group"
           >
-            <ArrowLeft className="w-5 h-5" />
-            Kembali ke Dashboard
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            KEMBALI KE DASHBOARD
           </Link>
-          <div className="flex items-center gap-4">
-            <div className="p-4 rounded-xl bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">
+          <div className="flex items-center gap-5">
+            <div className="p-4 rounded-2xl bg-white shadow-sm border border-slate-100 text-[#9a1b1b]">
               <Book className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-heading font-bold text-white">
-                Edit Koleksi
-              </h1>
-              <p className="text-[#94A3B8] font-mono">
-                Perbarui informasi koleksi buku
-              </p>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Edit Koleksi</h1>
+              <p className="text-slate-400 font-medium italic text-sm">Perbarui informasi bibliografi dan metadata buku.</p>
             </div>
           </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="card-standard space-y-6">
-            <h2 className="text-xl font-heading font-bold text-white border-b border-white/10 pb-4">
-              Informasi Dasar
-            </h2>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          
+          {/* Card 1: Informasi Dasar */}
+          <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-8 md:p-10 space-y-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                <Info size={20} />
+              </div>
+              <h3 className="font-bold text-xl text-slate-800 tracking-tight">Data Bibliografi</h3>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Title */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-mono font-semibold text-white mb-2">
-                  Judul <span className="text-red-500">*</span>
-                </label>
+                <label className={labelClass}>Judul Koleksi *</label>
                 <input
                   type="text"
                   required
                   value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  className="input-field"
-                  placeholder="Judul buku/koleksi"
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className={inputClass}
+                  placeholder="Masukkan judul buku..."
                 />
               </div>
 
-              {/* Author */}
               <div>
-                <label className="block text-sm font-mono font-semibold text-white mb-2">
-                  Penulis <span className="text-red-500">*</span>
-                </label>
+                <label className={labelClass}>Penulis / Pengarang *</label>
                 <input
                   type="text"
                   required
                   value={formData.author}
-                  onChange={(e) =>
-                    setFormData({ ...formData, author: e.target.value })
-                  }
-                  className="input-field"
-                  placeholder="Nama penulis"
+                  onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                  className={inputClass}
                 />
               </div>
 
-              {/* Publisher */}
               <div>
-                <label className="block text-sm font-mono font-semibold text-white mb-2">
-                  Penerbit <span className="text-red-500">*</span>
-                </label>
+                <label className={labelClass}>Penerbit *</label>
                 <input
                   type="text"
                   required
                   value={formData.publisher}
-                  onChange={(e) =>
-                    setFormData({ ...formData, publisher: e.target.value })
-                  }
-                  className="input-field"
-                  placeholder="Nama penerbit"
+                  onChange={(e) => setFormData({ ...formData, publisher: e.target.value })}
+                  className={inputClass}
                 />
               </div>
 
-              {/* Publication Year */}
               <div>
-                <label className="block text-sm font-mono font-semibold text-white mb-2">
-                  Tahun Terbit <span className="text-red-500">*</span>
-                </label>
+                <label className={labelClass}>Tahun Terbit *</label>
                 <input
                   type="text"
                   required
                   value={formData.publicationYear}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      publicationYear: e.target.value,
-                    })
-                  }
-                  className="input-field"
-                  placeholder="2024"
+                  onChange={(e) => setFormData({ ...formData, publicationYear: e.target.value })}
+                  className={inputClass}
                 />
               </div>
 
-              {/* ISBN */}
               <div>
-                <label className="block text-sm font-mono font-semibold text-white mb-2">
-                  ISBN
-                </label>
+                <label className={labelClass}>ISBN</label>
                 <input
                   type="text"
                   value={formData.isbn}
-                  onChange={(e) =>
-                    setFormData({ ...formData, isbn: e.target.value })
-                  }
-                  className="input-field"
-                  placeholder="978-xxx-xxx-xxx-x"
+                  onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
+                  className={inputClass}
                 />
               </div>
 
-              {/* Category */}
               <div>
-                <label className="block text-sm font-mono font-semibold text-white mb-2">
-                  Kategori <span className="text-red-500">*</span>
-                </label>
+                <label className={labelClass}>Kategori *</label>
                 <select
                   required
                   value={formData.categoryId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, categoryId: e.target.value })
-                  }
-                  className="input-field"
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className={`${inputClass} appearance-none cursor-pointer`}
                 >
                   <option value="">Pilih Kategori</option>
                   {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Type */}
               <div>
-                <label className="block text-sm font-mono font-semibold text-white mb-2">
-                  Tipe Koleksi <span className="text-red-500">*</span>
-                </label>
+                <label className={labelClass}>Tipe Koleksi *</label>
                 <select
                   required
                   value={formData.type}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      type: e.target.value as typeof formData.type,
-                    })
-                  }
-                  className="input-field"
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                  className={`${inputClass} appearance-none cursor-pointer`}
                 >
                   <option value="physical_book">Buku Fisik</option>
                   <option value="ebook">E-Book</option>
@@ -315,108 +246,90 @@ export default function EditCollectionPage() {
                 </select>
               </div>
 
-              {/* Description */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-mono font-semibold text-white mb-2">
-                  Deskripsi
-                </label>
+                <label className={labelClass}>Deskripsi / Sinopsis</label>
                 <textarea
                   rows={4}
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  className="input-field resize-none"
-                  placeholder="Deskripsi singkat tentang koleksi..."
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className={`${inputClass} resize-none min-h-[120px]`}
                 />
               </div>
             </div>
           </div>
 
-          {/* Cover Image */}
-          <div className="card-standard space-y-4">
-            <h2 className="text-xl font-heading font-bold text-white border-b border-white/10 pb-4">
-              Cover Image
-            </h2>
-
-            {/* Current Image */}
-            {currentImage && !imagePreview && (
-              <div>
-                <p className="text-sm text-[#94A3B8] font-mono mb-2">
-                  Cover saat ini:
-                </p>
-                <img
-                  src={currentImage}
-                  alt="Current cover"
-                  className="w-48 h-64 object-cover rounded-lg border border-white/10"
-                />
+          {/* Card 2: Cover Image */}
+          <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-8 md:p-10">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 bg-red-50 text-[#9a1b1b] rounded-lg">
+                <ImageIcon size={20} />
               </div>
-            )}
+              <h3 className="font-bold text-xl text-slate-800 tracking-tight">Manajemen Cover</h3>
+            </div>
 
-            {/* New Image Preview */}
-            {imagePreview && (
-              <div>
-                <p className="text-sm text-[#94A3B8] font-mono mb-2">
-                  Cover baru:
-                </p>
-                <div className="relative inline-block">
-                  <img
-                    src={imagePreview}
-                    alt="New cover preview"
-                    className="w-48 h-64 object-cover rounded-lg border border-white/10"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveNewImage}
-                    className="absolute -top-2 -right-2 p-1 bg-red-500 hover:bg-red-600 rounded-full text-white transition-colors"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-end">
+              <div className="space-y-4">
+                <label className={labelClass}>Ganti Cover</label>
+                <div className="relative group">
+                  <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="edit-upload" />
+                  <label
+                    htmlFor="edit-upload"
+                    className="flex flex-col items-center justify-center gap-3 w-full py-10 border-2 border-dashed border-slate-200 rounded-[24px] cursor-pointer hover:border-[#9a1b1b] hover:bg-red-50/30 transition-all duration-300 group"
                   >
-                    <X className="w-4 h-4" />
-                  </button>
+                    <div className="p-3 bg-slate-50 rounded-full group-hover:bg-white transition-colors">
+                      <Upload className="w-5 h-5 text-slate-300 group-hover:text-[#9a1b1b]" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-500">{imagePreview ? "Ganti File Baru" : "Upload File Baru"}</span>
+                  </label>
                 </div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter text-center">Format: JPG, PNG, WebP (Max 5MB)</p>
               </div>
-            )}
 
-            {/* Upload Button */}
-            <div>
-              <label className="btn-secondary inline-flex items-center gap-2 cursor-pointer">
-                <Upload className="w-5 h-5" />
-                {imagePreview ? "Ganti Cover" : "Upload Cover Baru"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-xs text-[#94A3B8] font-mono mt-2">
-                Format: JPG, PNG, WebP (Max 5MB)
-              </p>
+              <div className="flex justify-center gap-6">
+                {/* Current Image */}
+                {currentImage && !imagePreview && (
+                  <div className="text-center">
+                    <p className={labelClass}>Cover Saat Ini</p>
+                    <div className="w-32 h-44 rounded-xl overflow-hidden shadow-md border border-slate-100">
+                      <img src={currentImage} className="w-full h-full object-cover" alt="Current" />
+                    </div>
+                  </div>
+                )}
+
+                {/* New Preview */}
+                {imagePreview && (
+                  <div className="text-center">
+                    <p className={`${labelClass} text-green-600 font-black tracking-widest`}>Pratinjau Baru</p>
+                    <div className="relative w-32 h-44 group">
+                      <img src={imagePreview} className="w-full h-full object-cover rounded-xl shadow-lg border-2 border-[#9a1b1b]" alt="Preview" />
+                      <button
+                        type="button"
+                        onClick={handleRemoveNewImage}
+                        className="absolute -top-2 -right-2 p-1.5 bg-red-600 rounded-full text-white shadow-lg hover:scale-110 transition-transform"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Submit Buttons */}
-          <div className="flex gap-4">
+          <div className="flex gap-4 pt-4">
             <button
               type="submit"
               disabled={submitting}
-              className="btn-primary flex-1 flex items-center justify-center gap-2"
+              className="flex-1 bg-[#9a1b1b] hover:bg-[#7a1515] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-lg shadow-red-900/20 transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Menyimpan...
-                </>
-              ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  Simpan Perubahan
-                </>
-              )}
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              Simpan Perubahan
             </button>
             <button
               type="button"
               onClick={() => navigate("/dashboard/super-admin")}
-              className="btn-secondary flex-1"
+              className="px-8 py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl font-bold hover:bg-slate-50 transition-all active:scale-[0.98]"
             >
               Batal
             </button>

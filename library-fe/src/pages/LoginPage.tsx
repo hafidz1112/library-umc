@@ -1,152 +1,162 @@
-import LogoUmc from "@/assets/logo_umc.png";
-import { authClient } from "@/lib/auth-client"; // Pastikan path sesuai
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { authClient } from "@/lib/auth-client";
+import { API_BASE_URL } from "@/lib/api-config";
+import { Mail, Lock, LogIn, UserCircle2, UserPlus } from "lucide-react";
 
-const GoogleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    className="h-6 w-6"
-  >
-    <path
-      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-      fill="#4285F4"
-    ></path>
-    <path
-      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-      fill="#34A853"
-    ></path>
-    <path
-      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-      fill="#FBBC05"
-    ></path>
-    <path
-      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-      fill="#EA4335"
-    ></path>
-    <path d="M1 1h22v22H1z" fill="none"></path>
-  </svg>
-);
-
-// --- Main App Component ---
-export default function Login() {
-  // const [showPassword, setShowPassword] = useState(false);
-  // const [email, setEmail] = useState("");
-  // const [password, setPassword] = useState("");
+const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: import.meta.env.VITE_BASE_URL,
-    });
+    try {
+      setIsLoading(true);
+      setError("");
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: window.location.origin,
+      });
+    } catch (err) {
+      setError("Gagal login SSO.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleManualLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Email/Password salah");
+      localStorage.setItem("access_token", data.token);
+      navigate("/katalog");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal login.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <>
-      <style>
-        {`
-          @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap');
-          
-          /* Dot grid pattern */
-          .bg-dots {
-            background-image: radial-gradient(#121212 1px, transparent 1px);
-            background-size: 20px 20px;
-          }
-        `}
-      </style>
-
-      {/* Container: Bauhaus Off-white (#F0F0F0) 
-        Layout: Geometric composition with absolute shapes 
-      */}
-      <div className="relative w-full min-h-screen flex items-center justify-center font-['Outfit'] bg-[#F0F0F0] overflow-hidden">
-        {/* --- Background Construction --- */}
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Dot texture overlay */}
-          <div className="absolute inset-0 bg-dots opacity-[0.15]" />
-
-          {/* Blue Circle Top Left */}
-          <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#1040C0] rounded-full border-4 border-black shadow-[8px_8px_0px_0px_black] opacity-20 lg:opacity-100" />
-
-          {/* Yellow Square Bottom Right (Rotated) */}
-          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#F0C020] border-4 border-black rotate-12 shadow-[8px_8px_0px_0px_black] opacity-20 lg:opacity-100" />
-
-          {/* Red Triangle Decoration (CSS Clip Path) */}
-          <div
-            className="absolute top-1/2 left-10 w-24 h-24 bg-[#D02020] hidden lg:block opacity-80"
-            style={{ clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)" }}
-          ></div>
+    <div className="h-screen bg-[#F1F3F6] flex items-center justify-center p-2 font-sans overflow-hidden">
+      <div className="w-full max-w-[380px] bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col">
+        
+        {/* Header Merah */}
+        <div className="bg-[#B21F24] pt-5 pb-7 px-6 text-center relative">
+          <div className="flex justify-center mb-2">
+            <div className="bg-white/10 p-2 rounded-full">
+              <UserCircle2 className="text-white w-10 h-10" strokeWidth={1.5} />
+            </div>
+          </div>
+          <h1 className="text-white text-lg font-bold">Selamat Datang</h1>
+          <p className="text-white/70 text-[11px]">Akses Koleksi Digital UMC</p>
+          <div className="absolute -bottom-1 left-0 right-0 h-4 bg-white rounded-t-[24px]"></div>
         </div>
 
-        {/* --- Login Card --- 
-            Style: Hard edges (rounded-none), thick borders, deep hard shadow
-        */}
-        <div className="relative w-full max-w-sm mx-4 bg-white border-4 border-black shadow-[8px_8px_0px_0px_black] hover:-translate-y-1 transition-transform duration-300">
-          {/* Card Corner Decoration (Bauhaus signature) */}
-          <div className="absolute -top-3 -right-3 w-6 h-6 bg-[#D02020] border-2 border-black" />
+        <div className="px-8 pb-6 pt-1 space-y-3.5">
+          {error && (
+            <div className="py-2 px-3 bg-red-50 text-red-600 text-[10px] rounded-lg text-center border border-red-100">
+              {error}
+            </div>
+          )}
 
-          <div className="p-8 space-y-8">
-            {/* Header section */}
-            <div className="flex flex-col items-center text-center space-y-4">
-              {/* Icon Container: Yellow Square with thick border */}
-              <div className="inline-flex p-4 border-2 border-black shadow-[4px_4px_0px_0px_black]">
-                <img src={LogoUmc} alt="logo_umc" className="w-10 h-10" />
-              </div>
+          {/* Tombol SSO */}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center gap-2 h-10 bg-[#B21F24] hover:bg-[#961a1e] text-white rounded-xl font-semibold text-xs transition-all active:scale-95"
+          >
+            <LogIn size={16} />
+            <span>Login SSO</span>
+          </button>
 
-              <div>
-                <h1 className="text-3xl font-black uppercase tracking-tight text-black">
-                  MUCILIB
-                </h1>
-                <p className="text-base font-medium text-zinc-600 mt-2">
-                  Masuk menggunakan akun kampus
-                </p>
+          <div className="relative flex items-center justify-center">
+            <div className="absolute w-full border-t border-gray-100"></div>
+            <span className="relative px-3 bg-white text-gray-400 text-[9px] uppercase font-bold tracking-widest">Atau</span>
+          </div>
+
+          {/* Form Login Manual */}
+          <form onSubmit={handleManualLogin} className="space-y-3">
+            <div>
+              <label className="block text-gray-700 text-[10px] font-bold mb-1 ml-1">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Masukkan email"
+                  className="w-full pl-10 pr-4 h-10 bg-[#F8FAFC] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#B21F24]/10 focus:border-[#B21F24] outline-none text-xs transition-all"
+                  required
+                />
               </div>
             </div>
 
-            {/* Social login buttons */}
-            <div className="grid grid-cols-1">
-              <button
-                onClick={handleGoogleLogin}
-                className="group flex items-center justify-center gap-3 h-12 px-4 bg-white text-black border-2 border-black shadow-[4px_4px_0px_0px_black] hover:bg-zinc-50 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all duration-200"
-              >
-                <GoogleIcon />
-                <span className="font-bold uppercase tracking-wide text-sm">
-                  Sign in with Google
-                </span>
-              </button>
-            </div>
-
-            {/* Divider: Geometric line (Commented out) */}
-            {/* 
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t-2 border-black" />
+            <div>
+              <div className="flex justify-between mb-1 ml-1">
+                <label className="text-gray-700 text-[10px] font-bold">Kata Sandi</label>
+                <button type="button" className="text-[#B21F24] text-[9px] font-bold hover:underline">Lupa sandi?</button>
               </div>
-              <div className="relative flex justify-center">
-                <span className="bg-white px-4 text-xs font-bold uppercase tracking-widest text-black border-2 border-black">
-                  OR
-                </span>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-4 h-10 bg-[#F8FAFC] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#B21F24]/10 focus:border-[#B21F24] outline-none text-xs transition-all"
+                  required
+                />
               </div>
             </div>
-             */}
 
-            {/* Form (Commented out) */}
-            {/* 
-            <form className="space-y-5">
-              <div className="space-y-2">
-                 ... Input Email ...
-              </div>
-              ...
-            </form>
-            */}
-
-            {/* Footer links (Commented out or Adjusted) */}
-            <div className="text-center space-y-3 pt-2">
-              <p className="text-xs font-medium text-zinc-500">
-                Hubungi administrator jika mengalami kendala login.
-              </p>
+            <div className="flex items-center justify-between px-1">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-3 h-3 rounded border-gray-300 text-[#B21F24] focus:ring-[#B21F24]"
+                />
+                <span className="text-gray-500 text-[10px]">Ingat saya</span>
+              </label>
             </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-10 bg-[#0F172A] hover:bg-slate-800 text-white rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 mt-1"
+            >
+              {isLoading ? "Memproses..." : "Masuk Ke Perpustakaan"}
+            </button>
+          </form>
+
+          {/* Tombol Register - Mengarah ke /register */}
+          <div className="pt-2 text-center">
+            <p className="text-gray-400 text-[10px] mb-1">Belum memiliki akun?</p>
+            <button
+              onClick={() => navigate("/register")}
+              className="flex items-center justify-center gap-1.5 w-full h-9 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold text-[11px] transition-all active:scale-95"
+            >
+              <UserPlus size={14} className="text-[#B21F24]" />
+              Daftar Akun Baru
+            </button>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
-}
+};
+
+export default LoginPage;
