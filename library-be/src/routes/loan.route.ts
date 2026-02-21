@@ -135,6 +135,40 @@ router.post(
 
 /**
  * @swagger
+ * /loans/{loanId}/return:
+ *   post:
+ *     summary: Return a book
+ *     description: Admin/Staff marks a loan as returned. Item status becomes 'available' again.
+ *     tags: [Loans]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: loanId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Loan ID
+ *     responses:
+ *       200:
+ *         description: Book returned successfully
+ *       404:
+ *         description: Loan not found or not in 'approved' status
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin/Staff only
+ */
+router.post(
+  "/loans/:loanId/return",
+  isAuthenticated,
+  requireRole(["super_admin", "staff"]),
+  loanController.returnLoan,
+);
+
+/**
+ * @swagger
  * /loans:
  *   get:
  *     summary: Get all loans

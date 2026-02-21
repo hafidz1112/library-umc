@@ -35,8 +35,6 @@ app.use(express.static(path.join(__dirname, "../public")));
 // Swagger UI using swagger-ui-express
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.use(errorMiddleware);
-
 // General rate limiter for all API routes (baseline protection)
 app.use("/api", generalLimiter);
 
@@ -46,8 +44,6 @@ app.use("/api", routes);
 // Better Auth Handler
 app.all("/api/auth/*path", toNodeHandler(auth));
 
-const PORT = process.env.PORT || 4000;
-
 app.get("/", (req, res) => {
   res.redirect("/docs");
 });
@@ -56,6 +52,10 @@ app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
+// Error Middleware (MuST be at the end)
+app.use(errorMiddleware);
+
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`SERVER RUNNING ON PORT ${PORT}`);
 });

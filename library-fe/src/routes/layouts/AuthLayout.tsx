@@ -23,7 +23,7 @@ export default function AuthLayout() {
             <p className="text-gray-600">Manage your knowledge, effortlessly</p>
           </div>
 
-          {/* Auth Form Container - This is where Login/Register will render */}
+          {/* Auth Form Container - This is where Login/auth/register will render */}
           <Outlet />
         </div>
       </div>

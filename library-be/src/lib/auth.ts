@@ -60,31 +60,26 @@ export const auth = betterAuth({
         before: async (user) => {
           console.log("[HOOK] User Create BEFORE:", user.email);
 
-          // Cek apakah user terdaftar di API Kampus (opsional)
-          // Jika tidak ditemukan, tetap izinkan register biasa dengan role default
-          const campusUser = await authService.getCampusUser(user.email);
-          if (!campusUser || !campusUser.success) {
+          try {
+            await authService.getCampusUser(user.email);
+            console.log("[HOOK] Campus Verification PASSED.");
+          } catch (_err) {
             console.log(
-              "[HOOK] Campus user not found — proceeding as regular registration.",
+              "[HOOK] Campus user not found or API error — proceeding as regular registration.",
             );
-            // Tetap izinkan user dengan role default (student)
-            return { data: user };
           }
-
-          console.log("[HOOK] Campus Verification PASSED.");
           return { data: user };
         },
         after: async (user) => {
           console.log("[HOOK] User Create AFTER Triggered. ID:", user.id);
 
-          // Coba sync dengan kampus, skip jika tidak ditemukan
-          const campusUser = await authService.getCampusUser(user.email);
-          if (campusUser && campusUser.success) {
+          try {
+            const campusUser = await authService.getCampusUser(user.email);
             console.log("[HOOK] Calling SyncMember...");
-            await authService.syncMember(user.id, campusUser.data);
-          } else {
+            await authService.syncMember(user.id, campusUser);
+          } catch (_err) {
             console.log(
-              "[HOOK] No campus data — skipping member sync for:",
+              "[HOOK] No campus data or API error — skipping member sync for:",
               user.email,
             );
           }

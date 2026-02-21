@@ -18,6 +18,7 @@ Welcome to the backend repository of **MUCILIB**, a modern, scalable Library Man
 - **Authentication:** Better Auth (Google OAuth + Credentials)
 - **Media Storage:** Cloudinary
 - **Validation:** Zod
+- **Error Handling:** Custom Error Classes
 
 ## 🚀 Getting Started
 

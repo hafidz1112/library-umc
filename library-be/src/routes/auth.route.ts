@@ -8,7 +8,7 @@ const authController = new AuthController();
 
 /**
  * @swagger
- * /register:
+ * /auth/register:
  *   post:
  *     summary: Register new user
  *     description: Register a new user with name, email, and password.
@@ -74,11 +74,11 @@ const authController = new AuthController();
  *       500:
  *         description: Server Error
  */
-router.post("/register", authLimiter, authController.register);
+router.post("/auth/register", authLimiter, authController.register);
 
 /**
  * @swagger
- * /login:
+ * /auth/login:
  *   post:
  *     summary: Login with email & password
  *     description: Authenticate user using email and password credentials.
@@ -139,7 +139,7 @@ router.post("/register", authLimiter, authController.register);
  *       500:
  *         description: Server Error
  */
-router.post("/login", authLimiter, authController.loginCredential);
+router.post("/auth/login", authLimiter, authController.loginCredential);
 
 /**
  * @swagger

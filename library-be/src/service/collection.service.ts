@@ -1,7 +1,7 @@
 import { db } from "../db";
-import { collections, items, categories } from "../db/schema";
+import { collections, categories } from "../db/schema";
 import { uploadToCloudinary } from "../utils/upload";
-import { eq } from "drizzle-orm";
+import { eq, or, ilike, and } from "drizzle-orm";
 
 type CollectionData = {
   coverImageUrl?: string;
@@ -16,15 +16,42 @@ type CollectionData = {
 };
 
 export class CollectionService {
-  // Get All Collections (Simple pagination placeholder)
-  async getAllCollections() {
+  // Get All Collections (Search & Filter enabled)
+  async getAllCollections(filters?: {
+    search?: string;
+    categoryId?: number;
+    type?: "physical_book" | "ebook" | "journal" | "thesis";
+  }) {
     try {
+      const { search, categoryId, type } = filters || {};
+
+      const whereConditions = [];
+
+      if (search) {
+        whereConditions.push(
+          or(
+            ilike(collections.title, `%${search}%`),
+            ilike(collections.author, `%${search}%`),
+            ilike(collections.isbn, `%${search}%`),
+          ),
+        );
+      }
+
+      if (categoryId) {
+        whereConditions.push(eq(collections.categoryId, categoryId));
+      }
+
+      if (type) {
+        whereConditions.push(eq(collections.type, type));
+      }
+
       const result = await db.query.collections.findMany({
+        where: whereConditions.length > 0 ? and(...whereConditions) : undefined,
         with: {
           category: true,
-          // items: true, // Uncomment jika ingin liat item fisik
         },
-        limit: 100, // Limit untuk performa
+        orderBy: (collections, { desc }) => [desc(collections.createdAt)],
+        limit: 100,
       });
 
       return {
@@ -77,7 +104,6 @@ export class CollectionService {
 
       // 3. Upload Cover Image ke Cloudinary (Jika ada)
       let coverImageUrl = null;
-      let coverPublicId = null;
 
       if (file) {
         const uploadResult = await uploadToCloudinary(
@@ -85,7 +111,6 @@ export class CollectionService {
           "library/covers",
         );
         coverImageUrl = uploadResult.url;
-        coverPublicId = uploadResult.publicId;
       }
 
       const collectionData = {
@@ -94,7 +119,12 @@ export class CollectionService {
         publisher: data.publisher,
         publicationYear: data.publicationYear,
         isbn: data.isbn?.trim() || null,
-        type: data.type,
+        type: data.type as
+          | "physical_book"
+          | "ebook"
+          | "journal"
+          | "thesis"
+          | undefined,
         categoryId: data.categoryId,
         description: data.description,
         image: coverImageUrl,

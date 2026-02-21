@@ -12,8 +12,25 @@ const collectionController = new CollectionController();
  * /collections:
  *   get:
  *     summary: Get all collections
- *     description: Retrieve list of all book collections (Public endpoint with rate limiting)
+ *     description: Retrieve list of book collections with search and filter options. (Public endpoint)
  *     tags: [Collections]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by title, author, or ISBN
+ *       - in: query
+ *         name: categoryId
+ *         schema:
+ *           type: integer
+ *         description: Filter by category ID
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [physical_book, ebook, journal, thesis]
+ *         description: Filter by collection type
  *     responses:
  *       200:
  *         description: Collections retrieved successfully

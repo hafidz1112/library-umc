@@ -6,6 +6,7 @@ import { categoryRoutes } from "./category.route";
 import { guestRoutes } from "./guest.route";
 import { loanRoutes } from "./loan.route";
 import { itemRoutes } from "./item.route";
+import { notificationRoutes } from "./notification.route";
 
 const router = Router();
 
@@ -29,5 +30,8 @@ router.use(guestRoutes);
 
 // Loans
 router.use(loanRoutes);
+
+// Notification
+router.use(notificationRoutes);
 
 export const routes = router;

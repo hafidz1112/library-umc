@@ -17,12 +17,10 @@ export class LoanController {
 
       const memberId = await loanService.getMemberIdByUserId(userId);
       if (!memberId) {
-        res
-          .status(400)
-          .json({
-            message:
-              "Member profile not found. Please complete your profile first.",
-          });
+        res.status(400).json({
+          message:
+            "Member profile not found. Please complete your profile first.",
+        });
         return;
       }
 
@@ -33,11 +31,12 @@ export class LoanController {
 
       const result = await loanService.requestLoan(memberId, itemId);
       res.status(200).json(result);
-    } catch (err: any) {
-      console.error("[LoanController] Error creating loan request:", err);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("[LoanController] Error:", error);
       res.status(500).json({
         success: false,
-        message: err.message || "Internal Server Error",
+        message: error.message || "Internal Server Error",
       });
     }
   }
@@ -54,8 +53,9 @@ export class LoanController {
 
       const result = await loanService.verifyToken(token);
       res.status(200).json(result);
-    } catch (error: any) {
-      console.error("[LoanController] Error verifying token:", error);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("[LoanController] Error:", error);
       res.status(500).json({
         success: false,
         message: error.message || "Internal Server Error",
@@ -68,8 +68,8 @@ export class LoanController {
     try {
       const user = req.user;
 
-      if (!user || user.role !== "super_admin") {
-        res.status(403).json({ message: "Unauthorized - Admin only" });
+      if (!user || (user.role !== "super_admin" && user.role !== "staff")) {
+        res.status(403).json({ message: "Unauthorized - Admin/Staff only" });
         return;
       }
 
@@ -77,8 +77,9 @@ export class LoanController {
 
       const result = await loanService.approveLoan(requestId, user.id);
       res.status(200).json(result);
-    } catch (error: any) {
-      console.error("[LoanController] Error approving loan:", error);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("[LoanController] Error:", error);
       res.status(500).json({
         success: false,
         message: error.message || "Internal Server Error",
@@ -91,8 +92,8 @@ export class LoanController {
     try {
       const user = req.user;
 
-      if (!user || user.role !== "super_admin") {
-        res.status(403).json({ message: "Unauthorized - Admin only" });
+      if (!user || (user.role !== "super_admin" && user.role !== "staff")) {
+        res.status(403).json({ message: "Unauthorized - Admin/Staff only" });
         return;
       }
 
@@ -100,8 +101,33 @@ export class LoanController {
 
       const result = await loanService.rejectLoan(requestId, user.id);
       res.status(200).json(result);
-    } catch (error: any) {
-      console.error("[LoanController] Error rejecting loan:", error);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("[LoanController] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+    }
+  }
+
+  // 4.5 Return Loan (NEW)
+  async returnLoan(req: Request, res: Response) {
+    try {
+      const user = req.user;
+
+      if (!user || (user.role !== "super_admin" && user.role !== "staff")) {
+        res.status(403).json({ message: "Unauthorized - Admin/Staff only" });
+        return;
+      }
+
+      const { loanId } = req.params as { loanId: string };
+
+      const result = await loanService.returnLoan(loanId, user.id);
+      res.status(200).json(result);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("[LoanController] Error:", error);
       res.status(500).json({
         success: false,
         message: error.message || "Internal Server Error",
@@ -130,8 +156,9 @@ export class LoanController {
       });
 
       res.status(200).json(result);
-    } catch (error: any) {
-      console.error("[LoanController] Error getting my loans:", error);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("[LoanController] Error:", error);
       res.status(500).json({
         success: false,
         message: error.message || "Internal Server Error",
@@ -157,8 +184,9 @@ export class LoanController {
       });
 
       res.status(200).json(result);
-    } catch (error: any) {
-      console.error("[LoanController] Error getting all loans:", error);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("[LoanController] Error:", error);
       res.status(500).json({
         success: false,
         message: error.message || "Internal Server Error",

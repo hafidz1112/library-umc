@@ -13,7 +13,18 @@ export class CollectionController {
    */
   async getAllCollections(req: Request, res: Response) {
     try {
-      const result = await collectionService.getAllCollections();
+      const { search, categoryId, type } = req.query;
+
+      const result = await collectionService.getAllCollections({
+        search: search as string,
+        categoryId: categoryId ? Number(categoryId) : undefined,
+        type: type as
+          | "physical_book"
+          | "ebook"
+          | "journal"
+          | "thesis"
+          | undefined,
+      });
 
       if (!result.success) {
         res.status(400).json(result);

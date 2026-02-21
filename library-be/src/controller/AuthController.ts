@@ -1,4 +1,4 @@
-import { type Request, type Response } from "express";
+import { type NextFunction, type Request, type Response } from "express";
 import { AuthService } from "../service/auth.service";
 import {
   loginSchema,
@@ -13,7 +13,7 @@ export class AuthController {
   /**
    * Register Controller - Register user with name, email, password
    */
-  async register(req: Request, res: Response) {
+  async register(req: Request, res: Response, next: NextFunction) {
     try {
       const validation = registerSchema.safeParse(req.body);
 
@@ -34,26 +34,20 @@ export class AuthController {
         password,
       );
 
-      if (!result.success) {
-        res.status(409).json(result);
-        return;
-      }
-
-      res.status(201).json(result);
-    } catch (error) {
-      console.error("[AuthController] Error in register:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-        data: null,
+      res.status(201).json({
+        success: true,
+        message: "Registrasi berhasil",
+        data: result,
       });
+    } catch (error) {
+      next(error);
     }
   }
 
   /**
    * Login Controller - Login with email & password
    */
-  async loginCredential(req: Request, res: Response) {
+  async loginCredential(req: Request, res: Response, next: NextFunction) {
     try {
       const validation = loginCredentialSchema.safeParse(req.body);
 
@@ -70,26 +64,20 @@ export class AuthController {
 
       const result = await authService.loginWithCredentials(email, password);
 
-      if (!result.success) {
-        res.status(401).json(result);
-        return;
-      }
-
-      res.status(200).json(result);
-    } catch (error) {
-      console.error("[AuthController] Error in loginCredential:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-        data: null,
+      res.status(200).json({
+        success: true,
+        message: "Login berhasil",
+        data: result,
       });
+    } catch (error) {
+      next(error);
     }
   }
 
   /**
    * Login Controller - Verify user with Campus API (Google OAuth callback)
    */
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response, next: NextFunction) {
     try {
       const validation = loginSchema.safeParse(req.body);
 
@@ -106,47 +94,25 @@ export class AuthController {
 
       const result = await authService.verifyWithCampus(email);
 
-      if (!result.success) {
-        res.status(401).json(result);
-        return;
-      }
-
-      res.status(200).json(result);
-    } catch (error) {
-      console.error("[AuthController] Error in login:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-        data: null,
+      res.status(200).json({
+        success: true,
+        message: "User verified with Campus API",
+        data: result,
       });
+    } catch (error) {
+      next(error);
     }
   }
 
   /**
    * Get All Users (Admin Only)
    */
-  async getAllUsers(req: Request, res: Response) {
+  async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
-      // Session & Role check sudah ditangani oleh Middleware
       const result = await UserService.getAllUsers();
-
-      if (!result.success) {
-        res.status(500).json({
-          success: false,
-          message: "Failed to get users",
-          data: null,
-        });
-        return;
-      }
-
       res.status(200).json(result);
-    } catch (err) {
-      console.error("[AuthController] Error getting all users:", err);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-        data: null,
-      });
+    } catch (error) {
+      next(error);
     }
   }
 }

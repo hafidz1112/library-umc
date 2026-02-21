@@ -1,28 +1,32 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { ZodError } from "zod";
+import { AppError } from "../exceptions/AppError";
 
 /**
  * Global Error Handling Middleware
- * Handles unexpected errors that escape try-catch blocks
  */
 export const errorMiddleware = (
   err: unknown,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) => {
-  // Set default values
   let statusCode = 500;
   let message = "Internal Server Error";
-  let errors: any = undefined;
+  let errors: Record<string, string[]> | undefined = undefined;
 
+  // Handle Custom AppError
+  if (err instanceof AppError) {
+    statusCode = err.statusCode;
+    message = err.message;
+  }
   // Handle Zod Validation Errors
-  if (err instanceof ZodError) {
+  else if (err instanceof ZodError) {
     statusCode = 400;
     message = "Validation Error";
     errors = err.flatten().fieldErrors;
   }
-  // Handle Multer Errors (File Upload)
+  // Handle Multer Errors
   else if (err instanceof Error && err.name === "MulterError") {
     statusCode = 400;
     message = err.message;
@@ -33,19 +37,20 @@ export const errorMiddleware = (
   }
 
   // Log errors for debugging
-  console.error("🔥 [ERROR MIDDLEWARE]:", {
+  console.error(`🔥 [${req.method}] ${req.originalUrl} Error:`, {
     message,
-    stack: err instanceof Error ? err.stack : "No stack trace",
-    url: req.originalUrl,
-    method: req.method,
-    timestamp: new Date().toISOString(),
+    statusCode,
+    stack:
+      err instanceof Error && process.env.NODE_ENV === "development"
+        ? err.stack
+        : undefined,
   });
 
   // Send error response
   res.status(statusCode).json({
     success: false,
     message,
-    ...(errors && { errors }),
+    ...(errors && { data: errors }), // Maintain data format consistent with existing responses
     ...(process.env.NODE_ENV === "development" && {
       stack: err instanceof Error ? err.stack : undefined,
     }),
