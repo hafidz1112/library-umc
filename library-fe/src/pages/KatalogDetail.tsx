@@ -36,7 +36,8 @@ const KatalogDetail = () => {
         name: session.user.name ?? "",
         email: session.user.email ?? "",
         role:
-          (session.user as any).role === "super_admin" || (session.user as any).role === "staff"
+          (session.user as any).role === "super_admin" ||
+          (session.user as any).role === "staff"
             ? "admin"
             : "mahasiswa",
         nim: (session.user as { nim?: string }).nim,
@@ -85,10 +86,13 @@ const KatalogDetail = () => {
   const isBorrowing = isUserBorrowing();
   const isPending = isUserPending();
 
-  // Override handleCheckLoans for admin
+  // Override handleCheckLoans untuk admin
   const onCheckStatusClick = () => {
     if (currentUser?.role === "admin") {
-      toastError("Akses Terbatas", "Admin tidak dapat mengakses fitur status peminjaman member.");
+      toastError(
+        "Akses Terbatas",
+        "Admin tidak dapat mengakses fitur status peminjaman member."
+      );
       return;
     }
     handleCheckLoans();
@@ -105,10 +109,10 @@ const KatalogDetail = () => {
     <div className="min-h-screen bg-slate-50">
       <Navbar />
 
-      {/* Modal Form Peminjaman */}
+      {/* ── Modal Form Peminjaman ── */}
       {showLoanForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-bold text-slate-900 mb-4">
               Ajukan Peminjaman Buku
             </h3>
@@ -116,12 +120,11 @@ const KatalogDetail = () => {
             <div className="space-y-4 mb-6">
               {/* Info Buku */}
               <div className="p-4 bg-slate-50 rounded-xl">
-                <p className="font-medium text-slate-900">
-                  {collection?.title}
-                </p>
+                <p className="font-medium text-slate-900">{collection?.title}</p>
                 <p className="text-sm text-slate-600">{collection?.author}</p>
               </div>
 
+              {/* Tanggal Peminjaman */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Tanggal Peminjaman
@@ -137,7 +140,7 @@ const KatalogDetail = () => {
                 />
               </div>
 
-              {/* ✅ Tanggal Pengembalian — otomatis 3 hari, diblokir dari input */}
+              {/* Tanggal Pengembalian — otomatis, read-only */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Tanggal Pengembalian (Maks 3 Hari)
@@ -211,8 +214,9 @@ const KatalogDetail = () => {
           </span>
         </nav>
 
-        {/* Card Utama */}
+        {/* ── Card Utama ── */}
         <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row mb-12">
+          
           {/* Sisi Kiri - Visual */}
           <div className="md:w-[35%] bg-[#F8FAFC] p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100">
             <div className="w-52 h-72 rounded-xl overflow-hidden shadow-2xl bg-white mb-8">
@@ -232,21 +236,9 @@ const KatalogDetail = () => {
             </div>
             <div className="flex gap-5">
               {[
-                {
-                  icon: <Share2 size={18} />,
-                  label: "Bagikan",
-                  onClick: () => {},
-                },
-                {
-                  icon: <Bookmark size={18} />,
-                  label: "Simpan",
-                  onClick: () => {},
-                },
-                {
-                  icon: <QrCode size={18} />,
-                  label: "QR Code",
-                  onClick: () => {},
-                },
+                { icon: <Share2 size={18} />, label: "Bagikan", onClick: () => {} },
+                { icon: <Bookmark size={18} />, label: "Simpan", onClick: () => {} },
+                { icon: <QrCode size={18} />, label: "QR Code", onClick: () => {} },
               ].map((btn, idx) => (
                 <button
                   key={idx}
@@ -266,36 +258,36 @@ const KatalogDetail = () => {
 
           {/* Sisi Kanan - Konten */}
           <div className="md:w-[65%] p-8 md:p-10 flex flex-col">
+            {/* Status Badges */}
             <div className="flex gap-2 mb-4 flex-wrap">
-              {/* Status Badge */}
               {isBorrowing ? (
                 <span className="px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 bg-purple-50 text-purple-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
                   Sedang Anda Pinjam
                 </span>
               ) : isPending ? (
                 <span className="px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 bg-yellow-50 text-yellow-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
                   Menunggu Persetujuan
                 </span>
               ) : isUserReserved() ? (
                 <span className="px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 bg-orange-50 text-orange-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                   Buku Sudah Anda Reservasi
                 </span>
               ) : bookStatus === "empty" ? (
                 <span className="px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 bg-red-50 text-red-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                   Stok Kosong
                 </span>
               ) : bookStatus === "available" ? (
                 <span className="px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 bg-green-50 text-green-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                   Tersedia
                 </span>
               ) : (
                 <span className="px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 bg-blue-50 text-blue-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                   Sedang Dipinjam
                 </span>
               )}
@@ -307,10 +299,7 @@ const KatalogDetail = () => {
               {collection?.items ? (
                 <span className="px-3 py-1 bg-slate-50 text-slate-400 rounded-full text-[10px] font-bold">
                   Stok:{" "}
-                  {
-                    collection.items.filter((i) => i.status === "available")
-                      .length
-                  }{" "}
+                  {collection.items.filter((i) => i.status === "available").length}{" "}
                   Fisik Tersedia
                 </span>
               ) : collection?.stock !== undefined ? (
@@ -320,16 +309,16 @@ const KatalogDetail = () => {
               ) : null}
             </div>
 
+            {/* Judul & Penulis */}
             <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-1 tracking-tight">
               {collection?.title}
             </h1>
             <p className="text-md text-slate-400 font-medium mb-8">
               Oleh{" "}
-              <span className="text-red-600 font-bold">
-                {collection?.author}
-              </span>
+              <span className="text-red-600 font-bold">{collection?.author}</span>
             </p>
 
+            {/* Meta Info */}
             <div className="grid grid-cols-3 gap-4 mb-8 border-b border-slate-50 pb-8">
               <div>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
@@ -357,14 +346,25 @@ const KatalogDetail = () => {
               </div>
             </div>
 
-            
+            {/* Sinopsis */}
+            {collection?.description && (
+              <div className="mb-8 flex-grow">
+                <h3 className="font-bold text-slate-900 mb-2 text-sm uppercase tracking-tight">
+                  Sinopsis
+                </h3>
+                <p className="text-slate-600 leading-relaxed text-sm">
+                  {collection.description}
+                </p>
+              </div>
+            )}
 
-            {/* Tombol Aksi */}
+            {/* ── Tombol Aksi ── */}
             <div className="flex gap-3 mt-auto">
+              {/* ✅ flex-[2] bukan flex-2 (tidak valid di Tailwind) */}
               <button
                 onClick={handleBorrow}
                 disabled={borrowLoading || isBorrowing}
-                className="flex-2 bg-[#9a1b1b] hover:bg-[#7a1515] disabled:bg-slate-200 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-all active:scale-[0.98]"
+                className="flex-[2] bg-[#9a1b1b] hover:bg-[#7a1515] disabled:bg-slate-200 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-all active:scale-[0.98]"
               >
                 {borrowLoading ? (
                   <>
@@ -372,25 +372,15 @@ const KatalogDetail = () => {
                     Memproses...
                   </>
                 ) : isBorrowing ? (
-                  <>
-                    <CheckCircle size={18} /> Sedang Anda Pinjam
-                  </>
+                  <><CheckCircle size={18} /> Sedang Anda Pinjam</>
                 ) : isPending ? (
-                  <>
-                    <Clock size={18} /> Menunggu Persetujuan
-                  </>
+                  <><Clock size={18} /> Menunggu Persetujuan</>
                 ) : isUserReserved() ? (
-                  <>
-                    <Calendar size={18} /> Sudah Reservasi
-                  </>
+                  <><Calendar size={18} /> Sudah Reservasi</>
                 ) : bookStatus === "borrowed" || bookStatus === "empty" ? (
-                  <>
-                    <Calendar size={18} /> Reservasi Buku
-                  </>
+                  <><Calendar size={18} /> Reservasi Buku</>
                 ) : (
-                  <>
-                    <Bookmark size={18} /> Pinjam Buku
-                  </>
+                  <><Bookmark size={18} /> Pinjam Buku</>
                 )}
               </button>
 
@@ -430,7 +420,7 @@ const KatalogDetail = () => {
           </div>
         )}
 
-        {/* SECTION: BUKU SERUPA */}
+        {/* ── SECTION: BUKU SERUPA ── */}
         <div className="mb-20">
           <div className="flex justify-between items-end mb-8">
             <div>

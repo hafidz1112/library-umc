@@ -12,7 +12,8 @@ export interface Loan {
   loanDate: string;
   dueDate: string;
   returnDate?: string;
-  status: "pending" | "approved" | "rejected" | "returned" | "extended";
+  // ✅ Status lengkap termasuk alur perpanjangan
+  status: "pending" | "approved" | "rejected" | "returned" | "extended" | "extend_pending";
   requestDate?: string;
   approvedBy?: string;
   createdAt?: string;
@@ -39,7 +40,9 @@ export interface Loan {
 class LoanService {
   private baseUrl = API_BASE_URL;
 
-  // POST /loans/request - Request a book loan (Member)
+  // ─── MEMBER METHODS ─────────────────────────────────────────────────────────
+
+  /** Request a book loan (Member) */
   async requestLoan(data: {
     memberId: string;
     collectionId: string;
@@ -59,7 +62,55 @@ class LoanService {
     return result.data;
   }
 
-  // GET /loans - Get all loans (Admin)
+  /** Get my loan history (Member) */
+  async getMyLoanHistory(): Promise<Loan[]> {
+    const response = await fetch(`${this.baseUrl}/api/loans/history`, {
+      credentials: "include"
+    });
+
+    let result: { success?: boolean; message?: string; data?: Loan[] } | null = null;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error("Respon server tidak valid saat memuat riwayat peminjaman");
+    }
+
+    if (!response.ok || !result?.success) {
+      throw new Error(result?.message || "Gagal memuat riwayat peminjaman");
+    }
+
+    return Array.isArray(result.data) ? result.data : [];
+  }
+
+  /** Member mengajukan perpanjangan (butuh persetujuan admin) */
+  async extendLoan(loanId: string): Promise<{ success: boolean; message: string; data: unknown }> {
+    const response = await fetch(`${this.baseUrl}/api/loans/${loanId}/extend`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include"
+    });
+    const result = await response.json();
+    if (!result.success)
+      throw new Error(result.message || "Gagal mengajukan perpanjangan");
+    return result;
+  }
+
+  /** Member mengajukan pengembalian buku */
+  async returnLoan(loanId: string, condition: string = "Baik"): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/api/loans/${loanId}/return`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ condition })
+    });
+    const result = await response.json();
+    if (!result.success)
+      throw new Error(result.message || "Gagal mengajukan pengembalian buku");
+  }
+
+  // ─── ADMIN METHODS ──────────────────────────────────────────────────────────
+
+  /** Get all loans (Admin) */
   async getAllLoans(params?: {
     status?: string;
     memberId?: string;
@@ -78,75 +129,61 @@ class LoanService {
     return result.data;
   }
 
-  // GET /loans/history - Get my loan history (Member)
-  async getMyLoanHistory(): Promise<Loan[]> {
-    const response = await fetch(`${this.baseUrl}/api/loans/history`, {
-      credentials: "include"
-    });
-
-    let result: { success?: boolean; message?: string; data?: Loan[] } | null =
-      null;
-    try {
-      result = await response.json();
-    } catch {
-      throw new Error(
-        "Respon server tidak valid saat memuat riwayat peminjaman"
-      );
-    }
-
-    if (!response.ok || !result?.success) {
-      throw new Error(result?.message || "Gagal memuat riwayat peminjaman");
-    }
-
-    return Array.isArray(result.data) ? result.data : [];
-  }
-
-  // POST /loans/{requestId}/approve - Approve loan (Admin)
+  /** Approve loan (Admin) */
   async approveLoan(requestId: string, notes?: string): Promise<void> {
-    const response = await fetch(
-      `${this.baseUrl}/api/loans/${requestId}/approve`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ notes })
-      }
-    );
+    const response = await fetch(`${this.baseUrl}/api/loans/${requestId}/approve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ notes })
+    });
     const result = await response.json();
     if (!result.success)
       throw new Error(result.message || "Gagal menyetujui peminjaman");
   }
 
-  // POST /loans/{requestId}/reject - Reject loan (Admin)
+  /** Reject loan (Admin) */
   async rejectLoan(requestId: string, reason: string): Promise<void> {
-    const response = await fetch(
-      `${this.baseUrl}/api/loans/${requestId}/reject`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ reason })
-      }
-    );
+    const response = await fetch(`${this.baseUrl}/api/loans/${requestId}/reject`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ reason })
+    });
     const result = await response.json();
     if (!result.success)
       throw new Error(result.message || "Gagal menolak peminjaman");
   }
 
-  // POST /loans/{loanId}/return - Return a book (Member/Admin)
-  async returnBook(loanId: string, condition?: string): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/api/loans/${loanId}/return`, {
+  /** Admin menyetujui perpanjangan */
+  async approveExtend(loanId: string, notes?: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/api/loans/${loanId}/approve-extend`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ condition })
+      body: JSON.stringify({ notes })
     });
     const result = await response.json();
     if (!result.success)
-      throw new Error(result.message || "Gagal mengembalikan buku");
+      throw new Error(result.message || "Gagal menyetujui perpanjangan");
   }
 
-  // GET /loans/verify/{token} - Verify loan token
+  /** Admin menolak perpanjangan */
+  async rejectExtend(loanId: string, reason: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/api/loans/${loanId}/reject-extend`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ reason })
+    });
+    const result = await response.json();
+    if (!result.success)
+      throw new Error(result.message || "Gagal menolak perpanjangan");
+  }
+
+  // ─── VERIFICATION METHODS ────────────────────────────────────────────────────
+
+  /** Verify loan token */
   async verifyLoanToken(token: string): Promise<unknown> {
     const response = await fetch(`${this.baseUrl}/api/loans/verify/${token}`, {
       credentials: "include"
@@ -154,21 +191,6 @@ class LoanService {
     const result = await response.json();
     if (!result.success) throw new Error(result.message || "Token tidak valid");
     return result.data;
-  }
-
-  // POST /api/loans/{loanId}/extend - Extend a book loan (Member)
-  async extendLoan(
-    loanId: string
-  ): Promise<{ success: boolean; message: string; data: unknown }> {
-    const response = await fetch(`${this.baseUrl}/api/loans/${loanId}/extend`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include"
-    });
-    const result = await response.json();
-    if (!result.success)
-      throw new Error(result.message || "Gagal memperpanjang peminjaman");
-    return result;
   }
 }
 
