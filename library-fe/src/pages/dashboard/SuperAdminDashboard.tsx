@@ -400,7 +400,7 @@ export default function SuperAdminDashboard() {
       />
 
       <SidebarInset className="bg-slate-100">
-        <header className="sticky top-0 z-10 flex min-h-20 flex-wrap items-center gap-3 border-b border-slate-200/70 bg-white/85 px-4 py-3 backdrop-blur-sm sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-1 flex min-h-20 flex-wrap items-center gap-3 border-b border-slate-200/70 bg-white/85 px-4 py-3 backdrop-blur-sm sm:px-6 lg:px-8">
           <SidebarTrigger className="size-9 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100" />
 
           <button
